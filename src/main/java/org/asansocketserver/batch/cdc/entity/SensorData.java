@@ -26,7 +26,7 @@ public class SensorData {
     private Long watchId;
     @Field(name = "name")
     private String name;
-    @Builder.Default
+    @Field(name = "sensorRowList")
     List<SensorRow> sensorRowList = new ArrayList<>();
 
     public static SensorData createSensorData(Long watchId , String name) {
@@ -34,6 +34,7 @@ public class SensorData {
                 .date(LocalDate.now())
                 .watchId(watchId)
                 .name(name)
+                .sensorRowList(new ArrayList<>())
                 .build();
     }
 

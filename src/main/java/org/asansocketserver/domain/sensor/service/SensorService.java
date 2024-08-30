@@ -238,6 +238,7 @@ public class SensorService {
 
     private void createAccelerometerAndSave(Long watchId, AccelerometerRequestDto accelerometer) {
         SensorAccelerometer sensorAccelerometer = SensorAccelerometer.createSensor(watchId, accelerometer);
+
         sensorAccelerometerRepository.save(sensorAccelerometer);
     }
 

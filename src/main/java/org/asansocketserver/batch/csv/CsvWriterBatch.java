@@ -15,9 +15,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -34,12 +33,12 @@ public class CsvWriterBatch {
     private final NotificationMongoRepository  notificationMongoRepository;
 
     @Transactional
-    @Scheduled(cron = "0 25 19 * * *")
+    @Scheduled(cron = "0 58 5 * * *")
     public void createCsvTask() {
         LocalDate now = LocalDate.now();
         List<Watch> watchList = findAllByWatch();
         watchList.forEach(watch -> {
-            String fileName = "ID_" + watch.getId() + "_data_" + now + ".csv";
+            String fileName =  "Name_"+watch.getName()+"_ID_" + watch.getId() + "_data_" + now + ".csv";
             createAndWriteSensorDataAtCsv(watch, fileName, now);
         });
 
@@ -61,7 +60,7 @@ public class CsvWriterBatch {
         int fileIndex = 0;
         int currentRow = 0;
 
-        FileWriter writer = null;
+        OutputStreamWriter writer = null;
 
         try {
             for (Notification notification : notificationList) {
@@ -70,8 +69,15 @@ public class CsvWriterBatch {
                     if (writer != null) {
                         writer.close();
                     }
-                    String fileName = "/Users/parkjaeseok/Desktop/" + today + "_" + (fileIndex++) + ".csv";
-                    writer = new FileWriter(fileName);
+                    String fileName = "/bin/home/notification/" + today + "_" + (fileIndex++) + ".csv";
+
+                    // FileOutputStream을 생성하여 UTF-8 BOM을 작성
+                    FileOutputStream fos = new FileOutputStream(fileName);
+                    writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+
+                    // UTF-8 BOM 작성
+                    writer.write("\uFEFF");
+
                     writer.write("WatchId,WatchName,WatchHost,Position,Type,Timestamp\n");
                 }
 
@@ -111,7 +117,7 @@ public class CsvWriterBatch {
         try {
             if(sensorData != null) {
                 // 현재 날짜를 폴더명으로 생성
-                String dateFolderName = "/Users/parkjaeseok/Desktop/" + now.toString();
+                String dateFolderName = "/bin/home/sensor/" + now.toString();
                 File dateFolder = new File(dateFolderName);
                 if (!dateFolder.exists()) {
                     dateFolder.mkdirs();
@@ -125,7 +131,6 @@ public class CsvWriterBatch {
                 }
 
                 for (SensorRow sensorRow : sensorData.getSensorRowList()) {
-                    // 새로운 파일이 필요하면 파일을 닫고 새 파일을 엽니다.
                     if (currentRow % maxRowsPerFile == 0) {
                         if (writer != null) {
                             writer.close();
@@ -175,3 +180,4 @@ public class CsvWriterBatch {
         return watchRepository.findAll();
     }
 }
+

@@ -105,4 +105,13 @@ public class SensorDataService {
 
         return mongoTemplate.findOne(query, entityClass);
     }
+
+    public void deleteExpiredSensorData() {
+        LocalDate today = LocalDate.now();
+        LocalDate expiryDate = today.minusDays(3);
+
+        Query query = new Query(Criteria.where("date").lt(expiryDate));
+        mongoTemplate.remove(query, SensorData.class);
+
+    }
 }

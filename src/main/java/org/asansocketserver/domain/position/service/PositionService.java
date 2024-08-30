@@ -3,6 +3,8 @@ package org.asansocketserver.domain.position.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.asansocketserver.domain.image.entity.Coordinate;
@@ -65,9 +67,14 @@ public class PositionService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final SimpMessageSendingOperations sendingOperations;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
+
+
     //    public static String UPLOAD_DIR = "C:\\Users\\AMC-guest\\uploads\\beacon_data\\";
-    public static String UPLOAD_DIR = "/Users/parkjaeseok/Desktop/csv/";
-//    public static String UPLOAD_DIR = "/app/uploads/beaconCsv/";
+//    public static String UPLOAD_DIR = "/Users/parkjaeseok/Desktop/csv/";
+    public static String UPLOAD_DIR = "/app/uploads/beaconCsv/";
 
     public List<BeaconCountsDTO> countBeacon() {
         return beaconDataRepository.findAllBeaconCount().stream()
@@ -87,6 +94,22 @@ public class PositionService {
                 positionStateRepository.deleteById(watch.getId());
             }, delay, TimeUnit.MILLISECONDS);
         }
+    }
+
+    @Transactional
+    public void saveBeaconData(BeaconData beaconDataEntity) {
+        try {
+            // 엔티티를 영속화
+            entityManager.persist(beaconDataEntity);
+
+            // 데이터베이스에 즉시 반영
+            entityManager.flush();
+        } catch (Exception e) {
+            // 에러 발생 시 로그 출력
+            log.error("Error saving BeaconData", e);
+        }
+        // 디버그 로그 출력
+        log.debug("BeaconData saved: " + beaconDataEntity);
     }
 
     public void createCsv() throws JsonProcessingException {
@@ -157,7 +180,7 @@ public class PositionService {
 }
 
 
-        @Transactional
+    @Transactional
     public void deleteState(StateDTO stateDTO) {
         Watch watch = findByWatchOrThrow(stateDTO.watchId());
         positionStateRepository.deleteById(watch.getId());
@@ -179,6 +202,7 @@ public class PositionService {
 
         Watch watch = findByWatchOrThrow(posData.watchId());
         PositionState positionState = findByPositionStateOrNull(watch.getId());
+        System.out.println("positionState = " + positionState);
         UniqueBSSIDMap baseMap = UniqueBSSIDMap.getInstance();
         UniqueBSSIDMap uniqueBSSIDMap = new UniqueBSSIDMap();
 
@@ -191,18 +215,20 @@ public class PositionService {
             try {
                 // positionState이 null이 아닌 상태는 "비콘 수집" 상태임
                 if (!Objects.isNull(positionState)) {
+                    System.out.println("position = " + positionState.getPosition());
+                    System.out.println("image = " + positionState.getImageId());
                     addPosData(posData, positionState.getImageId(), positionState.getPosition());
 
                 } else {
                     for (BeaconDataDTO beaconData : posData.beaconData()) {
-//                        System.out.println("Updating beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
+                        System.out.println("Updating beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
                         uniqueBSSIDMap.updateBSSIDMap(beaconData.bssid(), String.valueOf(beaconData.rssi()));
                     }
                 }
             } finally {
-//                System.out.println("Before copying to baseMap: " + uniqueBSSIDMap.getBSSIDMap());
+                System.out.println("Before copying to baseMap: " + uniqueBSSIDMap.getBSSIDMap());
                 baseMap.copyFrom(uniqueBSSIDMap);
-//                System.out.println("After copying to baseMap: " + baseMap.getBSSIDMap());
+                System.out.println("After copying to baseMap: " + baseMap.getBSSIDMap());
 
                 prediction = "null";
                 if (!baseMap.getBSSIDMap().isEmpty()) {
@@ -220,7 +246,7 @@ public class PositionService {
                     System.out.println("Image ID could not be retrieved: " + e.getMessage());
                     // 예외 발생 시 추가적인 로직을 여기에 작성
                 }
-                System.out.println("imageId = " + imageId);
+
                 System.out.println("After reset: " + baseMap.getBSSIDMap());
             }
         }
@@ -230,8 +256,8 @@ public class PositionService {
         if(posData.beaconData().isEmpty()){
             prediction = "null";
         }
-        watch.updateCurrentLocation(prediction);
-        updatePositionData(watch.getId(), PositionData.of(prediction));
+       // watch.updateCurrentLocation(prediction);
+//        updatePositionData(watch.getId(), PositionData.of(prediction));
 
 //        System.out.println("watchName : " +  watch.getName() + " prediction : " + prediction);
         String color = "null";
@@ -379,24 +405,29 @@ public class PositionService {
         beaconDataRepository.deleteAll(beaconsByPosition);
     }
 
-    private String addPosData(PosDataDTO posData, Long imageId,String position) {
 
+    private void addPosData(PosDataDTO posData, Long imageId,String position) {
+        System.out.println("posData = " + posData);
         if (posData.beaconData().isEmpty()){
-
-            return null;
+            System.out.println("posData emtpty= " + posData);
         }
 
-//        for (BeaconDataDTO beaconData : posData.beaconData()) {
-//            System.out.println("scaning beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
-//        }
+        for (BeaconDataDTO beaconData : posData.beaconData()) {
+            System.out.println("scaning beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
+        }
 
         BeaconData beaconDataEntity = new BeaconData();
         beaconDataEntity.setImageId(imageId);
         beaconDataEntity.setPosition(position);
+
+        // BeaconDataDTO를 JSON 문자열로 변환
         String beaconDataJson = converBeaconDataDtoToJson(posData.beaconData());
         beaconDataEntity.setBeaconData(beaconDataJson);
-        beaconDataRepository.save(beaconDataEntity);
-        return null;
+
+        // BeaconData 엔티티를 데이터베이스에 저장
+        saveBeaconData(beaconDataEntity);
+
+        System.out.println("beaconDataJson = " + beaconDataJson);
     }
 
     // 받은 PosData에서 json({uuid, rssi})을 (DB)에 저장.

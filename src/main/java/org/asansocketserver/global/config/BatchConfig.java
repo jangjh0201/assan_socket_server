@@ -15,6 +15,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.ListItemReader;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.batch.repeat.policy.SimpleCompletionPolicy;
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +47,26 @@ public class BatchConfig extends DefaultBatchConfiguration {
                 .reader(sensorDataReader)
                 .processor(sensorDataProcessor)
                 .writer(sensorDataWriter)
+                .build();
+    }
+
+    @Bean
+    public Job deleteExpiredSensorDataJob(JobRepository jobRepository, Step deleteExpiredSensorDataStep) {
+        return new JobBuilder("deleteExpiredSensorDataJob", jobRepository)
+                .start(deleteExpiredSensorDataStep)
+                .build();
+    }
+
+    @Bean
+    public Step deleteExpiredSensorDataStep(JobRepository jobRepository,
+                                            ItemReader<SensorData> sensorDataReader,
+                                            PlatformTransactionManager transactionManager,
+                                            SensorDataService sensorDataService) {
+        return new StepBuilder("deleteExpiredSensorDataStep", jobRepository)
+                .tasklet((contribution, chunkContext) -> {
+                    sensorDataService.deleteExpiredSensorData();
+                    return RepeatStatus.FINISHED;
+                }, transactionManager)
                 .build();
     }
 

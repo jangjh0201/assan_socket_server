@@ -36,12 +36,16 @@ import org.bson.types.ObjectId;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.asansocketserver.global.error.ErrorCode.*;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -54,6 +58,7 @@ public class WatchService {
     private final WatchNoContactRepository watchNoContactRepository;
     private final CoordinateRepository coordinateRepository;
     private final SensorDataRepository sensorDataRepository;
+    private final MongoTemplate mongoTemplate;
 
     public WatchResponseDto updateWatchInfo(Long watchId, WatchUpdateRequestDto watchUpdateRequestDto) {
         Watch watch = findByWatchIdOrThrow(watchId);
@@ -67,8 +72,11 @@ public class WatchService {
         Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(watch.getId(), LocalDate.now());
 
         if (sensorData.isPresent()) {
-            sensorData.get().updatedWatchName(watchUpdateRequestDto.name());
-            sensorDataRepository.save(sensorData.get());
+            mongoTemplate.updateFirst(
+                    query(where("watch_id").is(watchId).and("date").is(LocalDate.now())),
+                    update("name", watchUpdateRequestDto.name()),
+                    SensorData.class
+            );
         }
 
         return WatchResponseDto.of(watch);
@@ -214,8 +222,11 @@ public class WatchService {
 
         Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(watchId, LocalDate.now());
         if (sensorData.isPresent()) {
-            sensorData.get().updatedWatchName(watchUpdateRequestDto.name());
-            sensorDataRepository.save(sensorData.get());
+            mongoTemplate.updateFirst(
+                    query(where("watch_id").is(watchId).and("date").is(LocalDate.now())),
+                    update("name", watchUpdateRequestDto.name()),
+                    SensorData.class
+            );
         }
 
         updateNoContactWatchList(watchId, noContactWatchIds);
@@ -305,6 +316,7 @@ public class WatchService {
         Watch receiveWatch = findByWatchIdOrThrow(requestDto.receiveInfoId());
 
         String sendWatchName = sendWatch.getName();
+        Long sendWatchId = sendWatch.getId();
 
         // 필요한 정보들을 이월
         receiveWatch.updateWatchForTransfer(sendWatch);
@@ -327,15 +339,11 @@ public class WatchService {
 
         Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(requestDto.receiveInfoId(), utcDate);
         if (sensorData.isPresent()) {
-            SensorData existingSensorData = sensorData.get();
-
-            if (existingSensorData.getId() == null) {
-                throw new IllegalStateException("SensorData _id is null. Cannot update without _id.");
-            }
-
-
-            existingSensorData.updatedWatchName(sendWatchName);
-            sensorDataRepository.save(existingSensorData);  // 업데이트된 엔티티를 저장
+            mongoTemplate.updateFirst(
+                    query(where("watch_id").is(sendWatchId).and("date").is(LocalDate.now())),
+                    update("name", sendWatchName),
+                    SensorData.class
+            );
         }
 
         return WatchResponseForWebDto.of(receiveWatch);

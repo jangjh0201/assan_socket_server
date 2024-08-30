@@ -56,7 +56,6 @@ public class WatchApiController {
     @PostMapping("/web/updateWatchInfoForWeb")
     public ResponseEntity<SuccessResponse<?>> updateWatchInfoForWeb(@RequestBody final WatchUpdateRequestForWebDto requestDto) {
         final WatchResponseForWebDto responseDto = watchService.updateWatchInfoForWeb(requestDto);
-        System.out.println("responseDto = " + responseDto);
         return SuccessResponse.created(responseDto);
     }
 
