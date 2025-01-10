@@ -25,7 +25,7 @@ public class SensorDataJobLauncher {
         this.deleteExpiredSensorDataJob = deleteExpiredSensorDataJob;
     }
 
-    @Scheduled(cron = "0 55 5 * * *")
+    @Scheduled(cron = "0 47 14 * * *")
     public void runJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()

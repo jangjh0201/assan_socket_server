@@ -26,6 +26,7 @@ public class PositionMessageController {
     public void sendAccelerometer(@Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
                                   @Payload final PosDataDTO request) throws Exception {
         String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
+
         PositionResponseDto responseDto = positionService.receiveData(request,destination);
         sendingOperations.convertAndSend(destination, SocketBaseResponse.of(MessageType.POSITION, responseDto));
     }

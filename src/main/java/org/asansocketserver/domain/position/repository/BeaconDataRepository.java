@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.HashMap;
 import java.util.List;
 
-public interface BeaconDataRepository extends JpaRepository<BeaconData,Long> {
+public interface BeaconDataRepository extends JpaRepository<BeaconData, Long> {
     List<BeaconData> findAllByPosition(String positionName);
 
 

@@ -24,8 +24,7 @@ public class PositionController {
     @GetMapping("/countBeacon")
     public ResponseEntity<SuccessResponse<?>> countBeacon() {
         positionService.countBeacon();
-        return SuccessResponse.ok(positionService.countBeacon());
-    }
+        return SuccessResponse.ok(positionService.countBeacon());}
 
     @PostMapping("/createCsv")
     public ResponseEntity<SuccessResponse<?>> createCsv() throws JsonProcessingException {

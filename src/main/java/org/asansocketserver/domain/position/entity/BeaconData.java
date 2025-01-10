@@ -15,7 +15,9 @@ public class BeaconData {
     @GeneratedValue
     private int id;
     private Long imageId;
+    private Long coordinateId;
     private String position;
+
     @Column(columnDefinition = "json")
     private String beaconData;
 }

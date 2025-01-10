@@ -1,5 +1,6 @@
 package org.asansocketserver.global.config;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.asansocketserver.batch.cdc.entity.SensorData;
 import org.asansocketserver.batch.cdc.repository.SensorDataRepository;
 import org.asansocketserver.batch.cdc.service.SensorDataService;
@@ -20,6 +21,7 @@ import org.springframework.batch.repeat.policy.SimpleCompletionPolicy;
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
@@ -87,7 +89,7 @@ public class BatchConfig extends DefaultBatchConfiguration {
     }
 
     @Bean
-    public PlatformTransactionManager transactionManager() {
-        return new ResourcelessTransactionManager();
+    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+        return new JpaTransactionManager(entityManagerFactory);
     }
 }
