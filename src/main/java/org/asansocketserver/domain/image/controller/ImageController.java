@@ -1,165 +1,181 @@
 package org.asansocketserver.domain.image.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.asansocketserver.domain.image.dto.*;
+import org.asansocketserver.domain.image.enums.CoordinateSetting;
 import org.asansocketserver.domain.image.service.ImageService;
 import org.asansocketserver.domain.position.dto.PositionDTO;
 import org.asansocketserver.global.common.SuccessResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import java.io.IOException;
 import java.util.List;
 
-@Tag(name = "Image API", description = "이미지 관련 API")
 @RequiredArgsConstructor
 @RequestMapping("/api/image")
 @RestController
+@Tag(name = "Image Controller", description = "이미지 관련 API")
 public class ImageController {
-    private final ImageService imageService;
+        private final ImageService imageService;
 
-    // --------------- 공통 ----------------
-    @Operation(summary = "이미지 조회", description = "특정 ID에 해당하는 이미지를 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "이미지 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "이미지가 존재하지 않음")
-    })
-    @GetMapping("/getImage/{id}")
-    public ResponseEntity<SuccessResponse<?>> getImage(
-            @Parameter(description = "조회할 이미지 ID", example = "1") @PathVariable Long id) {
-        ImageResponseDto responseDto = imageService.getImage(id);
-        return SuccessResponse.ok(responseDto);
-    }
+        // --------------- 공통 ----------------
+        // 이미지 조회 api
+        @Operation(summary = "이미지 조회 API", description = "주어진 이미지 id에 해당하는 이미지를 조회합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ImageResponseDto.class)))
+        })
+        @GetMapping("/getImage/{id}")
+        public ResponseEntity<SuccessResponse<?>> getImage(@PathVariable Long id) {
+                ImageResponseDto responseDto = imageService.getImage(id);
+                return SuccessResponse.ok(responseDto);
+        }
 
-    @Operation(summary = "이미지 목록 조회", description = "웹 또는 앱에서 사용할 이미지 목록을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "이미지 목록 조회 성공")
-    })
-    @GetMapping("/getImageList")
-    public ResponseEntity<SuccessResponse<?>> getImageList(
-            @Parameter(description = "웹 여부", example = "true") @RequestParam("isWeb") Boolean isWeb) {
-        ImageListDTO responseDto = imageService.getImageList(isWeb);
-        return SuccessResponse.ok(responseDto);
-    }
+        // 이미지 목록 조회 api -> RequestParam 추가
+        @Operation(summary = "이미지 목록 조회 API", description = "isWeb 파라미터에 따라 이미지 목록을 조회합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ImageListDTO.class)))
+        })
+        @GetMapping("/getImageList")
+        public ResponseEntity<SuccessResponse<?>> getImageList(@RequestParam("isWeb") Boolean isWeb) {
+                ImageListDTO responseDto = imageService.getImageList(isWeb);
+                return SuccessResponse.ok(responseDto);
+        }
 
-    @Operation(summary = "웹에서 사용할 이미지 목록 조회", description = "웹에서 사용할 이미지 목록을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "웹용 이미지 목록 조회 성공")
-    })
-    @GetMapping("/getImageListForWeb")
-    public ResponseEntity<SuccessResponse<?>> getImageListForWeb(
-            @Parameter(description = "웹 여부", example = "true") @RequestParam("isWeb") Boolean isWeb) {
-        ImageListForWebDto responseDto = imageService.getImageListForWeb(isWeb);
-        return SuccessResponse.ok(responseDto);
-    }
+        @Operation(summary = "웹 이미지 목록 조회 API", description = "웹용 이미지 목록을 조회합니다. (isWeb 파라미터 사용)", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ImageListForWebDto.class)))
+        })
+        @GetMapping("/getImageListForWeb")
+        public ResponseEntity<SuccessResponse<?>> getImageListForWeb(@RequestParam("isWeb") Boolean isWeb) {
+                ImageListForWebDto responseDto = imageService.getImageListForWeb(isWeb);
+                return SuccessResponse.ok(responseDto);
+        }
 
-    @Operation(summary = "이미지 이름 변경", description = "이미지의 이름을 변경합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "이름 변경 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 이미지가 존재하지 않음")
-    })
-    @PostMapping("/nameChange")
-    public ResponseEntity<SuccessResponse<?>> nameChange(@RequestBody ImageIdAndNameDTO imageIdAndNameDTO) {
-        Long imageId = imageService.nameChange(imageIdAndNameDTO);
-        return SuccessResponse.ok(imageId);
-    }
+        @Operation(summary = "이미지 이름 변경 API", description = "이미지 id와 새로운 이름을 받아 이미지 이름을 변경합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Long.class)))
+        })
+        @PostMapping("/nameChange")
+        public ResponseEntity<SuccessResponse<?>> nameChange(@RequestBody ImageIdAndNameDTO imageIdAndNameDTO) {
+                Long imageId = imageService.nameChange(imageIdAndNameDTO);
+                return SuccessResponse.ok(imageId);
+        }
 
-    @Operation(summary = "이미지 삭제", description = "특정 이미지 ID에 해당하는 이미지를 삭제합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "이미지 삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 이미지가 존재하지 않음")
-    })
-    @DeleteMapping("/deleteImage/{imageId}")
-    public ResponseEntity<SuccessResponse<?>> deleteImage(
-            @Parameter(description = "삭제할 이미지 ID", example = "1") @PathVariable Long imageId) {
-        imageService.deleteImage(imageId);
-        return SuccessResponse.ok(null);
-    }
+        // 이미지 삭제 api
+        @Operation(summary = "이미지 삭제 API", description = "주어진 이미지 id에 해당하는 이미지를 삭제합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class)))
+        })
+        @DeleteMapping("/deleteImage/{imageId}")
+        public ResponseEntity<SuccessResponse<?>> deleteImage(@PathVariable Long imageId) {
+                imageService.deleteImage(imageId);
+                return SuccessResponse.ok(null);
+        }
 
-    @Operation(summary = "이미지 내 위치 목록 조회", description = "이미지에 설정된 위치 목록을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "위치 목록 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 이미지의 위치 목록이 존재하지 않음")
-    })
-    @GetMapping("/getPositionList")
-    public ResponseEntity<SuccessResponse<?>> getPositionList(
-            @Parameter(description = "웹 여부", example = "true") @RequestParam("isWeb") Boolean isWeb) {
-        List<PositionDTO> positionList = imageService.getPositionList(isWeb);
-        return SuccessResponse.ok(positionList);
-    }
+        // 이미지내에 설정한 위치들의 이름 목록을 가져오는 api (앱에서 비콘을 모으기 위해 위치 목록을 띄울 경우 사용)
+        @Operation(summary = "이미지 내 위치 목록 조회 API", description = "isWeb 파라미터에 따라 이미지 내 위치 이름 목록을 조회합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = PositionDTO[].class)))
+        })
+        @GetMapping("/getPositionList")
+        public ResponseEntity<SuccessResponse<?>> getPositionList(@RequestParam("isWeb") Boolean isWeb) {
+                List<PositionDTO> positionList = imageService.getPositionList(isWeb);
+                return SuccessResponse.ok(positionList);
+        }
 
-    @Operation(summary = "이미지 내 위치 및 좌표 조회", description = "특정 이미지 ID에 해당하는 위치 및 좌표 목록을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "위치 및 좌표 목록 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 이미지가 존재하지 않음")
-    })
-    @GetMapping("/getPositionAndCoordinateList/{id}")
-    public ResponseEntity<SuccessResponse<?>> getPositionAndCoordinateList(
-            @Parameter(description = "이미지 ID", example = "1") @PathVariable Long id,
-            @Parameter(description = "웹 여부", example = "true") @RequestParam("isWeb") Boolean isWeb) {
-        List<CoordinateDTO> positionList = imageService.getPositionAndCoordinateList(id, isWeb);
-        return SuccessResponse.ok(positionList);
-    }
+        // 이미지내에 설정한 위치들과 해당 좌표 목록을 가져오는 api
+        @Operation(summary = "이미지 내 위치 및 좌표 목록 조회 API", description = "주어진 이미지 id와 isWeb 파라미터에 따라 위치와 좌표 목록을 조회합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CoordinateDTO[].class)))
+        })
+        @GetMapping("/getPositionAndCoordinateList/{id}")
+        public ResponseEntity<SuccessResponse<?>> getPositionAndCoordinateList(@PathVariable Long id,
+                        @RequestParam("isWeb") Boolean isWeb) {
+                List<CoordinateDTO> positionList = imageService.getPositionAndCoordinateList(id, isWeb);
+                return SuccessResponse.ok(positionList);
+        }
 
-    @Operation(summary = "이미지 내 위치 및 범위 저장", description = "이미지 내 특정 위치 및 범위를 저장합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "위치 및 범위 저장 성공")
-    })
-    @PostMapping("/postImagePositionAndCoordinates")
-    public ResponseEntity<SuccessResponse<?>> saveImagePositionAndCoordinates(@RequestBody LabelDataDTO labelDataDTO) {
-        imageService.saveImagePositionAndCoordinates(labelDataDTO);
-        return SuccessResponse.ok(null);
-    }
+        // 이미지 내 위치 및 범위 생성 api
+        // LabelDataDTO에 isWeb 속성 존재
+        @Operation(summary = "이미지 내 위치 및 범위 생성 API", description = "LabelDataDTO를 받아 이미지 내 위치와 좌표를 저장합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class)))
+        })
+        @PostMapping("/postImagePositionAndCoordinates")
+        public ResponseEntity<SuccessResponse<?>> saveImagePositionAndCoordinates(
+                        @RequestBody LabelDataDTO labelDataDTO) {
+                imageService.saveImagePositionAndCoordinates(labelDataDTO);
+                return SuccessResponse.ok(null);
 
-    // --------------- 앱 ----------------
-    @Operation(summary = "이미지 저장", description = "이미지를 저장합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "이미지 저장 성공")
-    })
-    @PostMapping("/saveImage")
-    public ResponseEntity<SuccessResponse<?>> saveImage(
-            @Parameter(description = "이미지 데이터") @RequestParam("imageData") MultipartFile file) throws IOException {
-        Long imageId = imageService.saveImage(file);
-        return SuccessResponse.ok(imageId);
-    }
+        }
 
-    @Operation(summary = "이미지 내 위치 및 범위 삭제", description = "특정 위치 이름에 해당하는 이미지 내 위치 및 범위를 삭제합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "위치 삭제 성공")
-    })
-    @DeleteMapping("/deleteImagePositionAndCoordinates/{positionName}")
-    public ResponseEntity<SuccessResponse<?>> deleteImagePositionAndCoordinates(
-            @Parameter(description = "삭제할 위치 이름", example = "회의실") @PathVariable String positionName) {
-        imageService.deleteImagePositionAndCoordinates(positionName);
-        return SuccessResponse.ok(null);
-    }
+        // --------------- 앱 ----------------
 
-    // --------------- 웹 ----------------
-    @Operation(summary = "웹에서 이미지 저장", description = "Base64 형식의 이미지 데이터를 저장합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "이미지 저장 성공")
-    })
-    @PostMapping("/web/saveImage")
-    public ResponseEntity<SuccessResponse<?>> saveImageForWeb(@RequestBody ImageBase64DTO imageBase64Dto)
-            throws IOException {
-        Long imageId = imageService.saveImageForWeb(imageBase64Dto.getImageData());
-        return SuccessResponse.ok(imageId);
-    }
+        // 이미지 저장 api
+        @Operation(summary = "이미지 저장 API (앱)", description = "MultipartFile 형태의 이미지 데이터를 받아 저장 후 이미지 id를 반환합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Long.class)))
+        })
+        @PostMapping("/saveImage")
+        public ResponseEntity<SuccessResponse<?>> saveImage(@RequestParam("imageData") MultipartFile file)
+                        throws IOException {
+                Long imageId = imageService.saveImage(file);
+                return SuccessResponse.ok(imageId);
+        }
 
-    @Operation(summary = "웹에서 좌표 삭제", description = "웹에서 특정 좌표 ID에 해당하는 좌표를 삭제합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "좌표 삭제 성공")
-    })
-    @DeleteMapping("/web/deleteImagePositionAndCoordinates/{coorId}")
-    public ResponseEntity<SuccessResponse<?>> deleteImagePositionAndCoordinatesForWeb(
-            @Parameter(description = "삭제할 좌표 ID", example = "100") @PathVariable Long coorId) {
-        imageService.deleteImagePositionAndCoordinatesForWeb(coorId);
-        return SuccessResponse.ok(null);
-    }
+        // 이미지 내 위치 및 범위 삭제 api
+
+        @Operation(summary = "이미지 내 위치 및 범위 삭제 API (앱)", description = "주어진 positionName에 해당하는 이미지 내 위치와 범위를 삭제합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class)))
+        })
+        @DeleteMapping("/deleteImagePositionAndCoordinates/{positionName}")
+        public ResponseEntity<SuccessResponse<?>> deleteImagePositionAndCoordinates(@PathVariable String positionName) {
+                imageService.deleteImagePositionAndCoordinates(positionName);
+                return SuccessResponse.ok(null);
+        }
+
+        // --------------- 웹 ----------------
+
+        // 웹 - 이미지 저장 api (flutter-web은 MultipartFile 미지원)
+        @Operation(summary = "웹 이미지 저장 API", description = "Base64 인코딩된 이미지 데이터를 받아 저장 후 이미지 id를 반환합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Long.class)))
+        })
+        @PostMapping("/web/saveImage")
+        public ResponseEntity<SuccessResponse<?>> saveImageForWeb(@RequestBody ImageBase64DTO imageBase64Dto)
+                        throws IOException {
+                Long imageId = imageService.saveImageForWeb(imageBase64Dto.getImageData());
+                // System.out.println("imageId = " + imageId);
+                return SuccessResponse.ok(imageId);
+        }
+
+        // 웹 - 이미지 내 위치 및 범위 삭제 api(웹은 좌표만 삭제)
+        @Operation(summary = "웹 이미지 좌표 삭제 API", description = "주어진 좌표 id (coorId)에 해당하는 이미지 좌표를 삭제합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class)))
+        })
+        @DeleteMapping("/web/deleteImagePositionAndCoordinates/{coorId}")
+        public ResponseEntity<SuccessResponse<?>> deleteImagePositionAndCoordinatesForWeb(@PathVariable Long coorId) {
+                imageService.deleteImagePositionAndCoordinatesForWeb(coorId);
+                return SuccessResponse.ok(null);
+        }
+
+        // 이미지 별로 지정된 위치를 목록으로 전달
+        @Operation(summary = "이미지 및 위치 이름 목록 조회 API", description = "이미지와 관련된 위치 이름 목록을 조회합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ImageAndCoordinateDTO[].class)))
+        })
+        @GetMapping("/web/getImageWithPositionNameList")
+        public ResponseEntity<SuccessResponse<?>> getImageWithPositionNameList() {
+                List<ImageAndCoordinateDTO> responseDto = imageService.getImageAndPositionNameList();
+                return SuccessResponse.ok(responseDto);
+        }
+
+        // 이미지 좌표별 상태 설정
+        @Operation(summary = "이미지 좌표별 상태 설정 API", description = "CoodinateSettingDto를 받아 이미지 좌표의 상태를 설정합니다.", responses = {
+                        @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CoodinateSettingDto.class)))
+        })
+        @PostMapping("/web/setCoordinateSetting")
+        public ResponseEntity<SuccessResponse<?>> setCoordinateSetting(
+                        @RequestBody CoodinateSettingDto coordinateSettingDto) {
+                CoodinateSettingDto responseDto = imageService.setCoordinateSetting(coordinateSettingDto);
+                return SuccessResponse.ok(responseDto);
+        }
+
 }
