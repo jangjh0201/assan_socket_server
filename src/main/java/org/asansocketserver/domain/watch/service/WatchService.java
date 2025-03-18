@@ -88,11 +88,11 @@ public class WatchService {
         return WatchAllResponseDto.of(watchResponseDtoList);
     }
 
-    public WatchAllResponseForWebDto findAllWatchForWeb() {
-        List<Watch> watchList = findAllByWatch();
-        List<WatchResponseForWebDto> watchResponseDtoList = WatchResponseForWebDto.listOf(watchList);
-        return WatchAllResponseForWebDto.of(watchResponseDtoList);
-    }
+    // public WatchAllResponseForWebDto findAllWatchForWeb() {
+    //     List<Watch> watchList = findAllByWatch();
+    //     List<WatchResponseForWebDto> watchResponseDtoList = WatchResponseForWebDto.listOf(watchList);
+    //     return WatchAllResponseForWebDto.of(watchResponseDtoList);
+    // }
 
     public Long deleteWatch(Long id) {
 
@@ -120,15 +120,15 @@ public class WatchService {
         return WatchResponseDto.of(watch);
     }
 
-    public WatchResponseForWebDto findWatchForWeb(String uuid) {
-        Watch watch = findByWatchOrThrow(uuid);
-        return WatchResponseForWebDto.of(watch);
-    }
+    // public WatchResponseForWebDto findWatchForWeb(String uuid) {
+    //     Watch watch = findByWatchOrThrow(uuid);
+    //     return WatchResponseForWebDto.of(watch);
+    // }
 
-    public WatchResponseForWebDto findWatchByIdForWeb(Long watchId) {
-        Watch watch = findByWatchIdOrThrow(watchId);
-        return WatchResponseForWebDto.of(watch);
-    }
+    // public WatchResponseForWebDto findWatchByIdForWeb(Long watchId) {
+    //     Watch watch = findByWatchIdOrThrow(watchId);
+    //     return WatchResponseForWebDto.of(watch);
+    // }
 
 //    public List<WatchWithHostDto> getWatchWithHost() {
 //        List<Watch> watchList = watchRepository.findAll();
@@ -206,35 +206,35 @@ public class WatchService {
     }
 
 
-    public WatchResponseForWebDto updateWatchInfoForWeb(WatchUpdateRequestForWebDto watchUpdateRequestDto) {
-        Long watchId = watchUpdateRequestDto.watchId();
+    // public WatchResponseForWebDto updateWatchInfoForWeb(WatchUpdateRequestForWebDto watchUpdateRequestDto) {
+    //     Long watchId = watchUpdateRequestDto.watchId();
 
-        boolean isDuplicateName = watchRepository.existsByNameAndIdNot(watchUpdateRequestDto.name(), watchId);
-        if (isDuplicateName) {
-            throw new IllegalArgumentException("중복 이름이 존재합니다.");
-        }
+    //     boolean isDuplicateName = watchRepository.existsByNameAndIdNot(watchUpdateRequestDto.name(), watchId);
+    //     if (isDuplicateName) {
+    //         throw new IllegalArgumentException("중복 이름이 존재합니다.");
+    //     }
 
-        List<Long> noContactWatchIds = watchUpdateRequestDto.noContactWatchIds();
-        List<Long> prohibitedCoordinatesIds = watchUpdateRequestDto.prohibitedCoordinatesIds();
+    //     List<Long> noContactWatchIds = watchUpdateRequestDto.noContactWatchIds();
+    //     List<Long> prohibitedCoordinatesIds = watchUpdateRequestDto.prohibitedCoordinatesIds();
 
-        Watch watch = findByWatchIdOrThrow(watchId);
-        watch.updateWatchForWeb(watchUpdateRequestDto);
+    //     Watch watch = findByWatchIdOrThrow(watchId);
+    //     // watch.updateWatchForWeb(watchUpdateRequestDto);
 
-        Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(watchId, LocalDate.now());
-        if (sensorData.isPresent()) {
-            mongoTemplate.updateFirst(
-                    query(where("watch_id").is(watchId).and("date").is(LocalDate.now())),
-                    update("name", watchUpdateRequestDto.name()),
-                    SensorData.class
-            );
-        }
+    //     Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(watchId, LocalDate.now());
+    //     if (sensorData.isPresent()) {
+    //         mongoTemplate.updateFirst(
+    //                 query(where("watch_id").is(watchId).and("date").is(LocalDate.now())),
+    //                 update("name", watchUpdateRequestDto.name()),
+    //                 SensorData.class
+    //         );
+    //     }
 
-        updateNoContactWatchList(watchId, noContactWatchIds);
-        updateProhibitedCoordinateList(watchId, prohibitedCoordinatesIds);
+    //     updateNoContactWatchList(watchId, noContactWatchIds);
+    //     updateProhibitedCoordinateList(watchId, prohibitedCoordinatesIds);
 
-        watchRepository.save(watch);
-        return WatchResponseForWebDto.of(watch);
-    }
+    //     watchRepository.save(watch);
+    //     return WatchResponseForWebDto.of(watch);
+    // }
 
 
 
@@ -311,42 +311,42 @@ public class WatchService {
 
     }
 
-    public WatchResponseForWebDto transferWatchInfo(WatchTransferDto requestDto) {
-        Watch sendWatch = findByWatchIdOrThrow(requestDto.sendInfoId());
-        Watch receiveWatch = findByWatchIdOrThrow(requestDto.receiveInfoId());
+    // public WatchResponseForWebDto transferWatchInfo(WatchTransferDto requestDto) {
+    //     Watch sendWatch = findByWatchIdOrThrow(requestDto.sendInfoId());
+    //     Watch receiveWatch = findByWatchIdOrThrow(requestDto.receiveInfoId());
 
-        String sendWatchName = sendWatch.getName();
-        Long sendWatchId = sendWatch.getId();
+    //     String sendWatchName = sendWatch.getName();
+    //     Long sendWatchId = sendWatch.getId();
 
-        // 필요한 정보들을 이월
-        receiveWatch.updateWatchForTransfer(sendWatch);
+    //     // 필요한 정보들을 이월
+    //     receiveWatch.updateWatchForTransfer(sendWatch);
 
-        watchNoContactRepository.deleteAllByWatch(sendWatch);
-        watchNoContactRepository.deleteAllByNoContactWatch(sendWatch);
+    //     watchNoContactRepository.deleteAllByWatch(sendWatch);
+    //     watchNoContactRepository.deleteAllByNoContactWatch(sendWatch);
 
 
 
-        // 업데이트된 receiveWatch 저장
-        watchRepository.save(receiveWatch);
+    //     // 업데이트된 receiveWatch 저장
+    //     watchRepository.save(receiveWatch);
 
-        // 이월 후 sendWatch 삭제
-        watchRepository.delete(sendWatch);
+    //     // 이월 후 sendWatch 삭제
+    //     watchRepository.delete(sendWatch);
 
-        // 한국 시간(LocalDate.now())을 UTC로 변환하여 조회
-        LocalDateTime nowInKST = LocalDateTime.now();
-        ZonedDateTime utcDateTime = nowInKST.atZone(ZoneId.of("Asia/Seoul")).withZoneSameInstant(ZoneOffset.UTC);
-        LocalDate utcDate = utcDateTime.toLocalDate();
+    //     // 한국 시간(LocalDate.now())을 UTC로 변환하여 조회
+    //     LocalDateTime nowInKST = LocalDateTime.now();
+    //     ZonedDateTime utcDateTime = nowInKST.atZone(ZoneId.of("Asia/Seoul")).withZoneSameInstant(ZoneOffset.UTC);
+    //     LocalDate utcDate = utcDateTime.toLocalDate();
 
-        Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(requestDto.receiveInfoId(), utcDate);
-        if (sensorData.isPresent()) {
-            mongoTemplate.updateFirst(
-                    query(where("watch_id").is(sendWatchId).and("date").is(LocalDate.now())),
-                    update("name", sendWatchName),
-                    SensorData.class
-            );
-        }
+    //     Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(requestDto.receiveInfoId(), utcDate);
+    //     if (sensorData.isPresent()) {
+    //         mongoTemplate.updateFirst(
+    //                 query(where("watch_id").is(sendWatchId).and("date").is(LocalDate.now())),
+    //                 update("name", sendWatchName),
+    //                 SensorData.class
+    //         );
+    //     }
 
-        return WatchResponseForWebDto.of(receiveWatch);
-    }
+    //     return WatchResponseForWebDto.of(receiveWatch);
+    // }
 
 }

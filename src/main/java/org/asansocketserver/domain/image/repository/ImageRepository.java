@@ -1,13 +1,11 @@
 package org.asansocketserver.domain.image.repository;
 
-import org.asansocketserver.domain.image.dto.ImageAndCoordinateDTO;
 import org.asansocketserver.domain.image.dto.ImageIDAndNameAndCoordinateDTO;
 import org.asansocketserver.domain.image.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
-import java.util.Objects;
 
 public interface ImageRepository extends JpaRepository<Image, Long> {
     List<Image> findAllByIsWebTrue();

@@ -1,13 +1,11 @@
 package org.asansocketserver.domain.notification.mongorepository;
 
-import io.lettuce.core.dynamic.annotation.Param;
 import org.asansocketserver.domain.notification.entity.Notification;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

@@ -1,28 +1,17 @@
 package org.asansocketserver.domain.sensor.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.asansocketserver.domain.position.dto.request.StateDTO;
 import org.asansocketserver.domain.sensor.dto.request.*;
-import org.asansocketserver.domain.sensor.dto.response.*;
 import org.asansocketserver.domain.sensor.service.SensorService;
 import org.asansocketserver.global.common.SuccessResponse;
-import org.asansocketserver.socket.dto.MessageType;
-import org.asansocketserver.socket.dto.SocketBaseResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
-import java.io.IOException;
 import java.util.Map;
 
 @Tag(name = "Sensor API", description = "센서 데이터 처리 API")

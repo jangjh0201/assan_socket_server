@@ -8,7 +8,7 @@ import org.asansocketserver.domain.watch.dto.response.WatchAllResponseDto;
 import org.asansocketserver.domain.watch.dto.response.WatchResponseDto;
 import org.asansocketserver.domain.watch.dto.web.request.WatchProhibitedCoordinatesUpdateRequestDto;
 import org.asansocketserver.domain.watch.dto.web.request.WatchTransferDto;
-import org.asansocketserver.domain.watch.dto.web.request.WatchUpdateRequestForWebDto;
+// import org.asansocketserver.domain.watch.dto.web.request.WatchUpdateRequestForWebDto;
 import org.asansocketserver.domain.watch.dto.web.response.*;
 import org.asansocketserver.domain.watch.service.WatchService;
 import org.asansocketserver.global.common.SuccessResponse;

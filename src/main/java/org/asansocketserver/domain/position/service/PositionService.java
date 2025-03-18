@@ -211,9 +211,7 @@ public class PositionService {
                     }
                 }
             } finally {
-//                System.out.println("Before copying to baseMap: " + uniqueBSSIDMap.getBSSIDMap());
                 baseMap.copyFrom(uniqueBSSIDMap);
-//                System.out.println("After copying to baseMap: " + baseMap.getBSSIDMap());
 
                 prediction = "null";
                 if (!baseMap.getBSSIDMap().isEmpty()) {
@@ -246,128 +244,12 @@ public class PositionService {
         watch.updateCurrentLocation(prediction);
         updatePositionData(watch.getId(), PositionData.of(prediction));
 
-//        System.out.println("watchName : " +  watch.getName() + " prediction : " + prediction);
         String color = "null";
-
-        if(imageId != null){
-            String genderColor = checkGender(destination, watch, imageId, prediction);
-            if (genderColor != null && !genderColor.isEmpty()) {
-                color = genderColor;
-            }
-
-            String contactColor = checkContaction(destination, watch, imageId, prediction);
-            if (contactColor != null && !contactColor.isEmpty()) {
-                color = contactColor;
-            }
-
-            String prohibitionColor = checkProhibition(destination, watch, imageId, prediction);
-            if (prohibitionColor != null && !prohibitionColor.isEmpty()) {
-                color = prohibitionColor;
-            }}
 
 
         return PositionResponseDto.of(watch.getId(), watch.getName(), imageId, color ,prediction);
     }
-
-    private String checkProhibition(String destination, Watch watch, Long imageId ,String prediction) {
-        List<WatchCoordinateProhibition> watchCoordinateProhibitionList = watch.getProhibitedCoordinateList();
-
-        for (WatchCoordinateProhibition watchCoordinateProhibition : watchCoordinateProhibitionList) {
-
-            if (watchCoordinateProhibition.getCoordinate().getPosition().equals(prediction)) {
-                sendingOperations.convertAndSend(destination, SocketBaseResponse.of(MessageType.PROHIBITION,
-                        CheckProhibitionDto.of(watch.getId(), imageId, watch.getName(),watch.getHost(), prediction)));
-
-                notificationService.createAndSaveNotification(watch, imageId, prediction,"PROHIBITION");
-                return "red";
-            }
-        }
-
-        return null ;
-    }
-
-    private String checkContaction(String destination, Watch watch,Long imageId, String prediction) {
-        List<WatchNoContact> watchNoContactList = watch.getNoContactWatchList();
-        for (WatchNoContact watchNoContact : watchNoContactList) {
-            String noContactLocation = watchNoContact.getNoContactWatch().getCurrentLocation();
-
-            if (prediction.equals(noContactLocation)) {
-                String contactedWatchName = watchNoContact.getNoContactWatch().getName();
-                sendingOperations.convertAndSend(destination, SocketBaseResponse.of(MessageType.CONTACTION,
-                        CheckContactionDto.of(watch.getId(), imageId, watch.getName(),watch.getHost(),contactedWatchName,prediction)));
-
-
-                notificationService.createAndSaveNotification(watch, imageId, prediction ,"CONTACTION");
-                return "yellow";
-            }
-        }
-        return null;
-    }
-
-    private String checkGender(String destination, Watch watch, Long imageId, String prediction) {
-        Optional<Coordinate> coordinateOpt = coordinateRepository.findByPositionAndIsWebTrue(prediction);
-
-        if (coordinateOpt.isPresent()) {
-            Coordinate coord = coordinateOpt.get();
-            String coordinateSetting = String.valueOf(coord.getSetting());
-            String genderRestriction = getGenderRestriction(coordinateSetting);
-
-            if (genderRestriction != null && shouldSendAlert(String.valueOf(watch.getGender()), genderRestriction)) {
-                if(genderRestriction.equals("금지")){
-                    sendTotalProhibitionAlert(destination, watch, imageId, prediction);
-                    return "purple";
-                }
-
-                sendGenderAlert(destination, watch, imageId, prediction);
-                return "yellow";
-            }
-        }
-        return null;
-    }
-
-    private String getGenderRestriction(String coordinateSetting) {
-        switch (coordinateSetting.toUpperCase()) {
-            case "MAN":
-                return "M";
-            case "FEMALE":
-                return "F";
-            case "PROHIBITION":
-                return "금지";
-            default:
-                return null;
-        }
-    }
-
-
-
-    private boolean shouldSendAlert(String watchGender, String genderRestriction) {
-        return genderRestriction.equals("금지") || !watchGender.equalsIgnoreCase(genderRestriction);
-    }
-
-
-    private void sendTotalProhibitionAlert(String destination, Watch watch, Long imageId, String prediction) {
-        sendingOperations.convertAndSend(destination,
-                SocketBaseResponse.of(
-                        MessageType.TOTAL_PROHIBITION,
-                        CheckGenderDto.of(watch.getId(),imageId, watch.getName(),watch.getHost(), prediction)
-                )
-        );
-        notificationService.createAndSaveNotification(watch, imageId, prediction,"TOTAL-PROHIBITION");
-    }
-
-    private void sendGenderAlert(String destination, Watch watch, Long imageId, String prediction) {
-        sendingOperations.convertAndSend(destination,
-                SocketBaseResponse.of(
-                        MessageType.GENDER,
-                        CheckGenderDto.of(watch.getId(),imageId, watch.getName(),watch.getHost(), prediction)
-                )
-        );
-        notificationService.createAndSaveNotification(watch, imageId, prediction,"GENDER");
-    }
-
-
-
-
+    
     private String sendUniqueBSSIDMapToFlask(UniqueBSSIDMap uniqueBSSIDMap) throws JSONException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

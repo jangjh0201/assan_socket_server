@@ -3,8 +3,6 @@ package org.asansocketserver.domain.watch.dto.response;
 import lombok.AccessLevel;
 import lombok.Builder;
 import org.asansocketserver.domain.watch.entity.Watch;
-import org.asansocketserver.domain.watch.entity.WatchLive;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.asansocketserver.domain.image.entity.Coordinate;
 import org.asansocketserver.domain.watch.dto.request.WatchUpdateRequestDto;
-import org.asansocketserver.domain.watch.dto.web.request.WatchUpdateRequestForWebDto;
+// import org.asansocketserver.domain.watch.dto.web.request.WatchUpdateRequestForWebDto;
 import org.asansocketserver.domain.watch.enums.Gender;
 import org.asansocketserver.domain.watch.enums.HighRisk;
 
@@ -30,7 +30,6 @@ public class Watch {
     private String name;
 
     private String host;
-
 
     private int minHR;
 
@@ -73,7 +72,7 @@ public class Watch {
                 .host("지정되지않음")
                 .minHR(60)
                 .maxHR(130)
-                .gender(Gender.M)
+                .gender(Gender.MALE)
                 .highRisk(HighRisk.없음)
                 .build();
     }
@@ -83,32 +82,32 @@ public class Watch {
         this.host = requestDto.host();
     }
 
-    public void updateWatchForWeb(WatchUpdateRequestForWebDto requestDto) {
-        this.name = requestDto.name();
-        this.host = requestDto.host();
-        if (requestDto.gender().equals("남성")) {
-            this.gender = Gender.M;
-        }else{
-            this.gender = Gender.F;
-        }
-        this.highRisk = HighRisk.valueOf(requestDto.highRisk());
-    }
+    // public void updateWatchForWeb(WatchUpdateRequestForWebDto requestDto) {
+    // this.name = requestDto.name();
+    // this.host = requestDto.host();
+    // if (requestDto.gender().equals("남성")) {
+    // this.gender = Gender.MALE;
+    // }else{
+    // this.gender = Gender.FEMALE;
+    // }
+    // this.highRisk = HighRisk.valueOf(requestDto.highRisk());
+    // }
 
-    public void updateWatchForTransfer(Watch sendWatch) {
-        this.name = sendWatch.getName();
-        this.host = sendWatch.getHost();
-        this.gender = sendWatch.getGender();
-        this.highRisk = sendWatch.getHighRisk();
-        this.minHR = sendWatch.getMinHR();
-        this.maxHR = sendWatch.getMaxHR();
+    public void updateWatchForTransfer(Watch watch) {
+        this.name = watch.getName();
+        this.host = watch.getHost();
+        this.gender = watch.getGender();
+        this.highRisk = watch.getHighRisk();
+        this.minHR = watch.getMinHR();
+        this.maxHR = watch.getMaxHR();
 
         // 기존 리스트를 지우고 sendWatch의 정보를 추가
         this.prohibitedCoordinateList.clear();
-        for (WatchCoordinateProhibition prohibition : sendWatch.getProhibitedCoordinateList()) {
+        for (WatchCoordinateProhibition prohibition : watch.getProhibitedCoordinateList()) {
             this.addProhibitedCoordinate(prohibition.getCoordinate());
         }
 
-        for (WatchNoContact noContact : sendWatch.getNoContactWatchList()) {
+        for (WatchNoContact noContact : watch.getNoContactWatchList()) {
             this.addNoContactWatch(noContact.getNoContactWatch());
         }
     }
