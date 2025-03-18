@@ -2,8 +2,9 @@ package org.asansocketserver.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.asansocketserver.domain.notification.dto.request.NotificationRequestDto;
-import org.asansocketserver.domain.notification.dto.request.response.NotificationResponseDto;
+
+import org.asansocketserver.domain.notification.dto.NotificationRequestDTO;
+import org.asansocketserver.domain.notification.dto.NotificationResponseDTO;
 import org.asansocketserver.domain.notification.entity.Notification;
 import org.asansocketserver.domain.notification.mongorepository.NotificationMongoRepository;
 import org.asansocketserver.domain.watch.entity.Watch;
@@ -25,7 +26,7 @@ public class NotificationService {
     public void createAndSaveNotification(Watch watch, Long imageId, String prediction, String alarmType) {
 
         LocalDateTime now = LocalDateTime.now();
-        NotificationRequestDto requestDto = NotificationRequestDto.of(
+        NotificationRequestDTO requestDto = NotificationRequestDTO.of(
                 watch.getId(),
                 imageId,
                 watch.getName(),
@@ -41,7 +42,7 @@ public class NotificationService {
 
     }
 
-    public List<NotificationResponseDto> getNotifications(int page, int size, String type, String watchName,
+    public List<NotificationResponseDTO> getNotifications(int page, int size, String type, String watchName,
             String watchId, LocalDate startDate, LocalDate endDate, boolean sortAsc) {
         int skip = (page - 1) * size;
 
@@ -73,7 +74,7 @@ public class NotificationService {
                 .collect(Collectors.toList());
 
         return filteredNotifications.stream()
-                .map(NotificationResponseDto::fromEntity)
+                .map(NotificationResponseDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 

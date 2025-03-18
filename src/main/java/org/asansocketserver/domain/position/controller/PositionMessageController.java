@@ -12,7 +12,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.Map;
@@ -27,8 +26,8 @@ public class PositionMessageController {
     @Operation(summary = "워치의 센서 데이터 전송", description = "워치에서 전송한 가속도계 데이터를 받아 처리하고, 처리된 위치 데이터를 WebSocket을 통해 반환합니다.")
     @MessageMapping("/position")
     public void sendAccelerometer(
-            @Parameter(description = "WebSocket 세션 속성", hidden = true) @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
-            @Parameter(description = "워치에서 전송하는 센서 데이터") @Payload final PosDataDTO request) throws Exception {
+            @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
+            @Payload final PosDataDTO request) throws Exception {
 
         String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
 

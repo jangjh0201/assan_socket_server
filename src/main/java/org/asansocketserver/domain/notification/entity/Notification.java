@@ -1,7 +1,8 @@
 package org.asansocketserver.domain.notification.entity;
 
 import lombok.*;
-import org.asansocketserver.domain.notification.dto.request.NotificationRequestDto;
+
+import org.asansocketserver.domain.notification.dto.NotificationRequestDTO;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
@@ -24,7 +25,7 @@ public class Notification {
     private String alarmType;
     private LocalDateTime timestamp;
 
-    public static Notification createNotification(NotificationRequestDto notificationRequestDto) {
+    public static Notification createNotification(NotificationRequestDTO notificationRequestDto) {
         return Notification.builder()
                 .watchId(notificationRequestDto.watchId())
                 .imageId(notificationRequestDto.imageId())

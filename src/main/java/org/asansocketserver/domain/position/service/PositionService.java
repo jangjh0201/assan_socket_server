@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.asansocketserver.domain.image.entity.Coordinate;
 import org.asansocketserver.domain.image.repository.CoordinateRepository;
-import org.asansocketserver.domain.notification.dto.request.NotificationRequestDto;
+import org.asansocketserver.domain.notification.dto.NotificationRequestDTO;
 import org.asansocketserver.domain.notification.entity.Notification;
 import org.asansocketserver.domain.notification.mongorepository.NotificationMongoRepository;
 import org.asansocketserver.domain.notification.service.NotificationService;
@@ -49,7 +49,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-
 import static org.asansocketserver.global.error.ErrorCode.WATCH_UUID_NOT_FOUND;
 
 @Slf4j
@@ -67,8 +66,9 @@ public class PositionService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final SimpMessageSendingOperations sendingOperations;
 
-    //    public static String UPLOAD_DIR = "C:\\Users\\AMC-guest\\uploads\\beacon_data\\";
-//    public static String UPLOAD_DIR = "/Users/parkjaeseok/Desktop/csv/";
+    // public static String UPLOAD_DIR =
+    // "C:\\Users\\AMC-guest\\uploads\\beacon_data\\";
+    // public static String UPLOAD_DIR = "/Users/parkjaeseok/Desktop/csv/";
     public static String UPLOAD_DIR = "/app/uploads/beaconCsv/";
 
     @Value("${flask.url}")
@@ -83,8 +83,8 @@ public class PositionService {
     public void insertState(StateDTO stateDTO) {
 
         Watch watch = findByWatchOrThrow(stateDTO.watchId());
-        PositionState positionState =
-                PositionState.createPositionState(watch.getId(), stateDTO.imageId(), stateDTO.position(), System.currentTimeMillis(),stateDTO.endTime());
+        PositionState positionState = PositionState.createPositionState(watch.getId(), stateDTO.imageId(),
+                stateDTO.position(), System.currentTimeMillis(), stateDTO.endTime());
         positionStateRepository.save(positionState);
 
         long delay = stateDTO.endTime() - System.currentTimeMillis();
@@ -105,8 +105,8 @@ public class PositionService {
         // 모든 비콘 데이터를 파싱하여 Map에 저장
         for (BeaconData reading : beaconDataList) {
             List<Map<String, String>> beaconDataListToMap = objectMapper.readValue(
-                    reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {}
-            );
+                    reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {
+                    });
             String position = reading.getPosition();
             data.putIfAbsent(position, new ArrayList<>());
 
@@ -116,7 +116,7 @@ public class PositionService {
         }
 
         // 유니크한 BSSID를 수집
-        Set<String> uniqueBssids = new TreeSet<>();  // TreeSet을 사용하여 자동으로 정렬
+        Set<String> uniqueBssids = new TreeSet<>(); // TreeSet을 사용하여 자동으로 정렬
         for (List<Map<String, String>> beaconDataMapList : data.values()) {
             for (Map<String, String> beaconData : beaconDataMapList) {
                 uniqueBssids.add(beaconData.get("bssid"));
@@ -141,8 +141,8 @@ public class PositionService {
             for (BeaconData reading : beaconDataList) {
                 String position = reading.getPosition();
                 List<Map<String, String>> beaconDataListToMap = objectMapper.readValue(
-                        reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {}
-                );
+                        reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {
+                        });
 
                 // 한 행에 대한 데이터를 작성
                 writer.append(position);
@@ -162,7 +162,6 @@ public class PositionService {
         }
     }
 
-
     @Transactional
     public void deleteState(StateDTO stateDTO) {
         Watch watch = findByWatchOrThrow(stateDTO.watchId());
@@ -173,12 +172,10 @@ public class PositionService {
         Watch watch = findByWatchOrThrow(String.valueOf(androidId));
         PositionState positionState = positionStateRepository.findById(watch.getId()).orElse(null);
         if (positionState == null)
-            return PositionState.createPositionState(androidId,null,null,null,0L);
+            return PositionState.createPositionState(androidId, null, null, null, 0L);
         else
             return positionState;
     }
-
-
 
     @Transactional
     public PositionResponseDto receiveData(PosDataDTO posData, String destination) throws Exception {
@@ -206,7 +203,8 @@ public class PositionService {
 
                 } else {
                     for (BeaconDataDTO beaconData : posData.beaconData()) {
-                        System.out.println("Updating beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
+                        System.out.println(
+                                "Updating beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
                         uniqueBSSIDMap.updateBSSIDMap(beaconData.bssid(), String.valueOf(beaconData.rssi()));
                     }
                 }
@@ -219,26 +217,24 @@ public class PositionService {
                 }
                 baseMap.resetBSSIDMapValues();
 
-
                 // prediction이 나타나지 않을 경우 execption 처리 재확인
-//                try {
-//                    imageId = coordinateRepository.findByPositionAndIsWebTrue(prediction)
-//                            .orElseThrow(() -> new NoSuchElementException("No coordinate found for the given prediction"))
-//                            .getImage()
-//                            .getId();
-//
-//                } catch (NoSuchElementException e) {
-//                    System.out.println("Image ID could not be retrieved: " + e.getMessage());
-//                    // 예외 발생 시 추가적인 로직을 여기에 작성
-//                }
+                // try {
+                // imageId = coordinateRepository.findByPositionAndIsWebTrue(prediction)
+                // .orElseThrow(() -> new NoSuchElementException("No coordinate found for the
+                // given prediction"))
+                // .getImage()
+                // .getId();
+                //
+                // } catch (NoSuchElementException e) {
+                // System.out.println("Image ID could not be retrieved: " + e.getMessage());
+                // // 예외 발생 시 추가적인 로직을 여기에 작성
+                // }
                 System.out.println("imageId = " + imageId);
                 System.out.println("After reset: " + baseMap.getBSSIDMap());
             }
         }
 
-
-
-        if(posData.beaconData().isEmpty()){
+        if (posData.beaconData().isEmpty()) {
             prediction = "null";
         }
         watch.updateCurrentLocation(prediction);
@@ -246,10 +242,9 @@ public class PositionService {
 
         String color = "null";
 
-
-        return PositionResponseDto.of(watch.getId(), watch.getName(), imageId, color ,prediction);
+        return PositionResponseDto.of(watch.getId(), watch.getName(), imageId, color, prediction);
     }
-    
+
     private String sendUniqueBSSIDMapToFlask(UniqueBSSIDMap uniqueBSSIDMap) throws JSONException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -262,7 +257,6 @@ public class PositionService {
         return jsonResponse.getString("prediction");
     }
 
-
     private PositionState findByPositionStateOrNull(Long id) {
         return positionStateRepository.findById(id)
                 .orElse(null);
@@ -273,9 +267,9 @@ public class PositionService {
         beaconDataRepository.deleteAll(beaconsByPosition);
     }
 
-    private String addPosData(PosDataDTO posData, Long imageId,String position) {
+    private String addPosData(PosDataDTO posData, Long imageId, String position) {
 
-        if (posData.beaconData().isEmpty()){
+        if (posData.beaconData().isEmpty()) {
 
             return null;
         }
@@ -287,14 +281,14 @@ public class PositionService {
         BeaconData beaconDataEntity = new BeaconData();
         beaconDataEntity.setImageId(imageId);
         beaconDataEntity.setPosition(position);
-        String beaconDataJson = converBeaconDataDtoToJson(posData.beaconData());
+        String beaconDataJson = convertBeaconDataDtoToJson(posData.beaconData());
         beaconDataEntity.setBeaconData(beaconDataJson);
         beaconDataRepository.save(beaconDataEntity);
         return null;
     }
 
     // 받은 PosData에서 json({uuid, rssi})을 (DB)에 저장.
-    private String converBeaconDataDtoToJson(List beaconDataDTO) {
+    private String convertBeaconDataDtoToJson(List beaconDataDTO) {
         // ObjectMapper를 사용하여 Beacon
         // DataDTO를 JSON 문자열로 변환
         ObjectMapper mapper = new ObjectMapper();
@@ -306,8 +300,6 @@ public class PositionService {
         }
     }
 
-
-
     private Watch findByWatchOrThrow(String id) {
         return watchRepository.findById(Long.parseLong(id))
                 .orElseThrow(() -> new EntityNotFoundException(WATCH_UUID_NOT_FOUND));
@@ -317,10 +309,4 @@ public class PositionService {
         positionMongoRepository.updatePosition(watchId, position);
     }
 
-
-
 }
-
-
-
-

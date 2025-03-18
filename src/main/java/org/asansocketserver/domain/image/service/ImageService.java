@@ -67,25 +67,6 @@ public class ImageService {
         return imageListDTO;
     }
 
-    // public ImageListForWebDto getImageListForWeb(Boolean isWeb) {
-
-    //     List<Long>  imageIdDtoArrayList = new ArrayList<>();
-    //     List<String>  imageNameDtoArrayList = new ArrayList<>();
-    //     List<String>  imageUrlDtoArrayList = new ArrayList<>();
-    //     List<Image> images = null;
-
-
-    //     images = imageRepository.findAllByIsWebTrue();
-    //     for (Image image : images) {
-    //         imageIdDtoArrayList.add(image.getId());
-    //         imageNameDtoArrayList.add(image.getImageName());
-    //         imageUrlDtoArrayList.add(image.getImageUrl());
-    //     }
-
-    //     return  ImageListForWebDto.of(imageIdDtoArrayList,imageNameDtoArrayList,imageUrlDtoArrayList);
-    // }
-
-
     public Long saveImage(MultipartFile file) throws IOException {
 
         byte[] bytes = file.getBytes();
@@ -225,28 +206,6 @@ public class ImageService {
         }
         return positionList;
     }
-
-    // public Long saveImageForWeb(String base64Image) throws IOException {
-    //     byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-    //     String fileName = "image_" + System.currentTimeMillis() + ".jpg";
-    //     Path path = Paths.get(UPLOAD_DIR + fileName);
-    //     Files.write(path, imageBytes);
-
-    //     Image image = Image.builder().imageUrl("/images/" + fileName).imageName("지정되지 않음").isWeb(true).build();
-    //     Image savedImage = imageRepository.save(image);
-    //     return savedImage.getId();
-    // }
-
-    // public void deleteImagePositionAndCoordinatesForWeb(Long coorId) {
-    //     Optional<Coordinate> optionalCoordinate = coordinateRepository.findById(coorId);
-    //     if (optionalCoordinate.isPresent()) {
-    //         Coordinate coordinate = optionalCoordinate.get();
-    //         coordinateRepository.delete(coordinate);
-    //     } else {
-    //         // 처리할 오류 또는 예외 던지기
-    //         throw new IllegalArgumentException("해당 좌표가 존재하지 않습니다.");
-    //     }
-    // }
 
     public List<ImageAndCoordinateDTO> getImageAndPositionNameList() {
         List<ImageIDAndNameAndCoordinateDTO> imageAndCoordinateDTOList = imageRepository.findImagesWithCoordinates();

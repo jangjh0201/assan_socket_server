@@ -12,7 +12,6 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @EnableAsync
 @EnableScheduling
-//@Component
+// @Component
 public class SensorScheduler {
     private final WatchLiveRepository watchLiveRepository;
     private final SimpMessageSendingOperations sendingOperations;
@@ -29,12 +28,14 @@ public class SensorScheduler {
     @Scheduled(cron = "30 * * * * *")
     public void broadcastWatchList() {
         List<WatchLiveResponseDto> responseDto = findAllWatch();
-        sendingOperations.convertAndSend("/queue/sensor/9999999", SocketBaseResponse.of(MessageType.WATCH_LIST, responseDto));
+        sendingOperations.convertAndSend("/queue/sensor/9999999",
+                SocketBaseResponse.of(MessageType.WATCH_LIST, responseDto));
     }
 
     public void sendDisconnectWatch(Long watchId) {
         WatchLiveResponseDto responseDto = WatchLiveResponseDto.of(watchId);
-        sendingOperations.convertAndSend("/queue/sensor/9999999", SocketBaseResponse.of(MessageType.DIS_WATCH, responseDto));
+        sendingOperations.convertAndSend("/queue/sensor/9999999",
+                SocketBaseResponse.of(MessageType.DIS_WATCH, responseDto));
     }
 
     private List<WatchLiveResponseDto> findAllWatch() {

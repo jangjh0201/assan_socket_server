@@ -1,10 +1,10 @@
-package org.asansocketserver.domain.notification.dto.request.response;
+package org.asansocketserver.domain.notification.dto;
 
 import org.asansocketserver.domain.notification.entity.Notification;
 
 import java.time.LocalDateTime;
 
-public record NotificationResponseDto(
+public record NotificationResponseDTO(
         Long watchId,
         Long imageId,
         String watchName,
@@ -13,8 +13,8 @@ public record NotificationResponseDto(
         String alarmType,
         LocalDateTime timestamp
 ) {
-    public static NotificationResponseDto fromEntity(Notification notification) {
-        return new NotificationResponseDto(
+    public static NotificationResponseDTO fromEntity(Notification notification) {
+        return new NotificationResponseDTO(
                 notification.getWatchId(),
                 notification.getImageId(),
                 notification.getWatchName(),

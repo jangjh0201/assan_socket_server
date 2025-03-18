@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.asansocketserver.domain.image.entity.Coordinate;
 import org.asansocketserver.domain.watch.dto.request.WatchUpdateRequestDto;
-// import org.asansocketserver.domain.watch.dto.web.request.WatchUpdateRequestForWebDto;
 import org.asansocketserver.domain.watch.enums.Gender;
 import org.asansocketserver.domain.watch.enums.HighRisk;
 
@@ -81,17 +80,6 @@ public class Watch {
         this.name = requestDto.name();
         this.host = requestDto.host();
     }
-
-    // public void updateWatchForWeb(WatchUpdateRequestForWebDto requestDto) {
-    // this.name = requestDto.name();
-    // this.host = requestDto.host();
-    // if (requestDto.gender().equals("남성")) {
-    // this.gender = Gender.MALE;
-    // }else{
-    // this.gender = Gender.FEMALE;
-    // }
-    // this.highRisk = HighRisk.valueOf(requestDto.highRisk());
-    // }
 
     public void updateWatchForTransfer(Watch watch) {
         this.name = watch.getName();

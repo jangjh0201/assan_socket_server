@@ -41,7 +41,7 @@ import static org.asansocketserver.socket.error.SocketErrorCode.*;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StompInterceptor implements ChannelInterceptor  {
+public class StompInterceptor implements ChannelInterceptor {
     public final static Long monitoringId = 9999999L;
     private final WatchRepository watchRepository;
     private final SensorDataRepository sensorDataRepository;
@@ -54,7 +54,7 @@ public class StompInterceptor implements ChannelInterceptor  {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         StompCommand command = accessor.getCommand();
-//        log.info("[command]:: watchId : " + command);
+        // log.info("[command]:: watchId : " + command);
 
         if (StompCommand.SUBSCRIBE.equals(command)) {
             sensorScheduler.broadcastWatchList();
@@ -67,13 +67,11 @@ public class StompInterceptor implements ChannelInterceptor  {
             Optional<Watch> watch = watchRepository.findById(watchId);
             if (!watchId.equals(monitoringId)) {
                 createWatchLiveAndSave(watchId);
-                createSensorDataAndSave(watchId , watch.get().getName());
+                createSensorDataAndSave(watchId, watch.get().getName());
                 createPositionAndSave(watchId);
             }
             log.info("[CONNECT]:: watchId : " + watchId);
             sensorScheduler.broadcastWatchList();
-
-
 
         } else if (StompCommand.DISCONNECT.equals(command)) {
             Long watchId = (Long) getWatchIdFromStompHeader(accessor);
@@ -87,7 +85,6 @@ public class StompInterceptor implements ChannelInterceptor  {
                     nativeCache.keySet().removeIf(key -> key.toString().matches("^" + watchId + ":.*"));
                 }
 
-
                 Optional<Watch> watch = watchRepository.findById(watchId);
                 watch.ifPresent(value -> {
                     value.updateCurrentLocation(null);
@@ -99,8 +96,6 @@ public class StompInterceptor implements ChannelInterceptor  {
             sensorScheduler.broadcastWatchList();
             log.info("DISCONNECTED watchId : {}", watchId);
         }
-
-
 
         return message;
     }
@@ -125,13 +120,15 @@ public class StompInterceptor implements ChannelInterceptor  {
 
     private void setWatchIdFromStompHeader(StompHeaderAccessor accessor, Object value) {
         Map<String, Object> sessionAttributes = getSessionAttributes(accessor);
-        if (Objects.isNull(sessionAttributes)) return;
+        if (Objects.isNull(sessionAttributes))
+            return;
         sessionAttributes.put("watchId", value);
     }
 
     private void deleteWatchIdFromStompHeader(StompHeaderAccessor accessor) {
         Map<String, Object> sessionAttributes = getSessionAttributes(accessor);
-        if (Objects.isNull(sessionAttributes)) return;
+        if (Objects.isNull(sessionAttributes))
+            return;
         sessionAttributes.remove("watchId");
     }
 
@@ -147,14 +144,16 @@ public class StompInterceptor implements ChannelInterceptor  {
         watchLiveRepository.save(watchLive);
     }
 
-    private void createSensorDataAndSave(Long watchId ,String watchName) {
-        if (sensorDataRepository.existsByWatchIdAndDate(watchId, LocalDate.now())) return;
+    private void createSensorDataAndSave(Long watchId, String watchName) {
+        if (sensorDataRepository.existsByWatchIdAndDate(watchId, LocalDate.now()))
+            return;
         SensorData sensorData = SensorData.createSensorData(watchId, watchName);
         sensorDataRepository.save(sensorData);
     }
 
     private void createPositionAndSave(Long watchId) {
-        if (positionMongoRepository.existsByWatchIdAndDate(watchId, LocalDate.now())) return;
+        if (positionMongoRepository.existsByWatchIdAndDate(watchId, LocalDate.now()))
+            return;
         Position position = Position.of(watchId);
         positionMongoRepository.save(position);
     }
@@ -177,8 +176,4 @@ public class StompInterceptor implements ChannelInterceptor  {
         watchLiveRepository.deleteById(watchId);
     }
 
-
-
-
 }
-

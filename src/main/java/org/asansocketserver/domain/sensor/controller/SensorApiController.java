@@ -30,8 +30,8 @@ public class SensorApiController {
     @Operation(summary = "가속도계 데이터 전송", description = "워치에서 가속도계 데이터를 WebSocket을 통해 전송합니다.")
     @MessageMapping("/accelerometer")
     public void sendAccelerometer(
-            @Parameter(description = "WebSocket 세션 속성", hidden = true) @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
-            @Parameter(description = "가속도계 데이터") @Payload final AccelerometerRequestDto request) {
+            @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
+            @Payload final AccelerometerRequestDto request) {
         sensorService.sendAccelerometer(simpSessionAttributes, request);
     }
 

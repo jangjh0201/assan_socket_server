@@ -3,7 +3,6 @@ package org.asansocketserver.domain.sensor.entity;
 
 import jakarta.persistence.Id;
 import lombok.*;
-import org.asansocketserver.domain.position.entity.PositionState;
 import org.springframework.data.redis.core.RedisHash;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

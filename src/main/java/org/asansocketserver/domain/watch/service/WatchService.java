@@ -15,7 +15,6 @@ import org.asansocketserver.domain.watch.dto.response.WatchResponseDto;
 import org.asansocketserver.domain.watch.dto.web.request.WatchNoContactedRequestDto;
 import org.asansocketserver.domain.watch.dto.web.request.WatchProhibitedCoordinatesUpdateRequestDto;
 import org.asansocketserver.domain.watch.dto.web.request.WatchTransferDto;
-import org.asansocketserver.domain.watch.dto.web.request.WatchUpdateRequestForWebDto;
 
 import org.asansocketserver.domain.watch.dto.web.response.*;
 import org.asansocketserver.domain.watch.entity.Watch;
@@ -75,8 +74,7 @@ public class WatchService {
             mongoTemplate.updateFirst(
                     query(where("watch_id").is(watchId).and("date").is(LocalDate.now())),
                     update("name", watchUpdateRequestDto.name()),
-                    SensorData.class
-            );
+                    SensorData.class);
         }
 
         return WatchResponseDto.of(watch);
@@ -87,12 +85,6 @@ public class WatchService {
         List<WatchResponseDto> watchResponseDtoList = WatchResponseDto.listOf(watchList);
         return WatchAllResponseDto.of(watchResponseDtoList);
     }
-
-    // public WatchAllResponseForWebDto findAllWatchForWeb() {
-    //     List<Watch> watchList = findAllByWatch();
-    //     List<WatchResponseForWebDto> watchResponseDtoList = WatchResponseForWebDto.listOf(watchList);
-    //     return WatchAllResponseForWebDto.of(watchResponseDtoList);
-    // }
 
     public Long deleteWatch(Long id) {
 
@@ -106,57 +98,17 @@ public class WatchService {
             watchRepository.delete(watch.get());
         }
 
-
-
         watchLive.ifPresent(watchLiveRepository::delete);
         sendingOperations.convertAndSend("/queue/sensor/9999999", SocketBaseResponse.of(MessageType.DEL_WATCH, id));
 
         return id;
     }
 
-
     public WatchResponseDto findWatch(String uuid) {
         Watch watch = findByWatchOrThrow(uuid);
         return WatchResponseDto.of(watch);
     }
 
-    // public WatchResponseForWebDto findWatchForWeb(String uuid) {
-    //     Watch watch = findByWatchOrThrow(uuid);
-    //     return WatchResponseForWebDto.of(watch);
-    // }
-
-    // public WatchResponseForWebDto findWatchByIdForWeb(Long watchId) {
-    //     Watch watch = findByWatchIdOrThrow(watchId);
-    //     return WatchResponseForWebDto.of(watch);
-    // }
-
-//    public List<WatchWithHostDto> getWatchWithHost() {
-//        List<Watch> watchList = watchRepository.findAll();
-//
-//        Map<String, WatchWithHostDto> watchMap = new HashMap<>();
-//
-//        WatchWithHostDto watchWithHosts;
-//
-//        List<WatchIdAndNameDto> watchIdAndNameList = new ArrayList<>();
-//
-//        for (Watch watch : watchList) {
-//
-//            watchWithHosts = watchMap.get(watch.getHost());
-//
-//            if (watchWithHosts == null) {
-//                watchWithHosts = WatchWithHostDto.of(watch.getHost(), new ArrayList<>());
-//                watchMap.put(watch.getHost(), watchWithHosts);
-//            }
-//
-//            watchIdAndNameList = watchMap.get(watch.getHost()).watchList();
-//            watchIdAndNameList.add(WatchIdAndNameDto.of(watch.getId(), watch.getName()));
-//
-//            watchWithHosts = WatchWithHostDto.of(watch.getHost(),watchIdAndNameList);
-//            watchMap.put(watch.getHost(), watchWithHosts);
-//
-//        }
-//        return new ArrayList<>(watchMap.values());
-//    }
 
     public List<WatchIdAndNameDto> getWatchForNoContact() {
         List<Watch> watchList = watchRepository.findAll();
@@ -181,8 +133,7 @@ public class WatchService {
         return watch.getNoContactWatchList().stream()
                 .map(watchNoContact -> WatchIdAndNameDto.of(
                         watchNoContact.getNoContactWatch().getId(),
-                        watchNoContact.getNoContactWatch().getName()
-                ))
+                        watchNoContact.getNoContactWatch().getName()))
                 .collect(Collectors.toList());
     }
 
@@ -191,53 +142,18 @@ public class WatchService {
                 .map(watchCoordinateProhibition -> ImageIDAndPositionAndCoordinateDTO.of(
                         watchCoordinateProhibition.getCoordinate().getImage().getId(),
                         watchCoordinateProhibition.getCoordinate().getId(),
-                        watchCoordinateProhibition.getCoordinate().getPosition()
-                ))
+                        watchCoordinateProhibition.getCoordinate().getPosition()))
                 .collect(Collectors.toList());
     }
-
 
     public WatchResponseDto createWatch(WatchRequestDto watchRequestDto) {
         validateDuplicateWatch(watchRequestDto);
         Watch createdWatch = createWatchAndSave(watchRequestDto);
         Long newWatchId = watchRepository.findByUuid(watchRequestDto.uuid()).get().getId();
-        sendingOperations.convertAndSend("/queue/sensor/9999999", SocketBaseResponse.of(MessageType.NEW_WATCH, newWatchId));
+        sendingOperations.convertAndSend("/queue/sensor/9999999",
+                SocketBaseResponse.of(MessageType.NEW_WATCH, newWatchId));
         return WatchResponseDto.of(createdWatch);
     }
-
-
-    // public WatchResponseForWebDto updateWatchInfoForWeb(WatchUpdateRequestForWebDto watchUpdateRequestDto) {
-    //     Long watchId = watchUpdateRequestDto.watchId();
-
-    //     boolean isDuplicateName = watchRepository.existsByNameAndIdNot(watchUpdateRequestDto.name(), watchId);
-    //     if (isDuplicateName) {
-    //         throw new IllegalArgumentException("중복 이름이 존재합니다.");
-    //     }
-
-    //     List<Long> noContactWatchIds = watchUpdateRequestDto.noContactWatchIds();
-    //     List<Long> prohibitedCoordinatesIds = watchUpdateRequestDto.prohibitedCoordinatesIds();
-
-    //     Watch watch = findByWatchIdOrThrow(watchId);
-    //     // watch.updateWatchForWeb(watchUpdateRequestDto);
-
-    //     Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(watchId, LocalDate.now());
-    //     if (sensorData.isPresent()) {
-    //         mongoTemplate.updateFirst(
-    //                 query(where("watch_id").is(watchId).and("date").is(LocalDate.now())),
-    //                 update("name", watchUpdateRequestDto.name()),
-    //                 SensorData.class
-    //         );
-    //     }
-
-    //     updateNoContactWatchList(watchId, noContactWatchIds);
-    //     updateProhibitedCoordinateList(watchId, prohibitedCoordinatesIds);
-
-    //     watchRepository.save(watch);
-    //     return WatchResponseForWebDto.of(watch);
-    // }
-
-
-
 
     private Watch createWatchAndSave(WatchRequestDto watchRequestDto) {
         Watch createdWatch = Watch.createWatch(watchRequestDto.uuid(), watchRequestDto.device());
@@ -288,7 +204,8 @@ public class WatchService {
         return responseDto;
     }
 
-    public WatchProhibitedCoordinatesUpdateResponseDto updateProhibitedCoordinateList(Long watchId, List<Long> prohibitedCoordinatesIds) {
+    public WatchProhibitedCoordinatesUpdateResponseDto updateProhibitedCoordinateList(Long watchId,
+            List<Long> prohibitedCoordinatesIds) {
         Optional<Watch> watchOptional = watchRepository.findById(watchId);
         if (watchOptional.isEmpty()) {
             throw new IllegalArgumentException(watchId + "번 워치는 존재하지않습니다.");
@@ -297,7 +214,7 @@ public class WatchService {
         Watch watch = watchOptional.get();
         watch.getProhibitedCoordinateList().clear();
 
-        for(Long prohibitedCoordinate : prohibitedCoordinatesIds){
+        for (Long prohibitedCoordinate : prohibitedCoordinatesIds) {
             Optional<Coordinate> prohibitedCoordinateOptional = coordinateRepository.findById(prohibitedCoordinate);
             if (prohibitedCoordinateOptional.isEmpty()) {
                 throw new IllegalArgumentException(watchId + "번 위치(좌표)는 존재하지않습니다.");
@@ -305,48 +222,7 @@ public class WatchService {
             watch.addProhibitedCoordinate(prohibitedCoordinateOptional.get());
         }
 
-
-        return WatchProhibitedCoordinatesUpdateResponseDto.of(watch.getId() , prohibitedCoordinatesIds);
-
+        return WatchProhibitedCoordinatesUpdateResponseDto.of(watch.getId(), prohibitedCoordinatesIds);
 
     }
-
-    // public WatchResponseForWebDto transferWatchInfo(WatchTransferDto requestDto) {
-    //     Watch sendWatch = findByWatchIdOrThrow(requestDto.sendInfoId());
-    //     Watch receiveWatch = findByWatchIdOrThrow(requestDto.receiveInfoId());
-
-    //     String sendWatchName = sendWatch.getName();
-    //     Long sendWatchId = sendWatch.getId();
-
-    //     // 필요한 정보들을 이월
-    //     receiveWatch.updateWatchForTransfer(sendWatch);
-
-    //     watchNoContactRepository.deleteAllByWatch(sendWatch);
-    //     watchNoContactRepository.deleteAllByNoContactWatch(sendWatch);
-
-
-
-    //     // 업데이트된 receiveWatch 저장
-    //     watchRepository.save(receiveWatch);
-
-    //     // 이월 후 sendWatch 삭제
-    //     watchRepository.delete(sendWatch);
-
-    //     // 한국 시간(LocalDate.now())을 UTC로 변환하여 조회
-    //     LocalDateTime nowInKST = LocalDateTime.now();
-    //     ZonedDateTime utcDateTime = nowInKST.atZone(ZoneId.of("Asia/Seoul")).withZoneSameInstant(ZoneOffset.UTC);
-    //     LocalDate utcDate = utcDateTime.toLocalDate();
-
-    //     Optional<SensorData> sensorData = sensorDataRepository.findByWatchIdAndDate(requestDto.receiveInfoId(), utcDate);
-    //     if (sensorData.isPresent()) {
-    //         mongoTemplate.updateFirst(
-    //                 query(where("watch_id").is(sendWatchId).and("date").is(LocalDate.now())),
-    //                 update("name", sendWatchName),
-    //                 SensorData.class
-    //         );
-    //     }
-
-    //     return WatchResponseForWebDto.of(receiveWatch);
-    // }
-
 }

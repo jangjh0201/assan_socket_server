@@ -3,13 +3,10 @@ package org.asansocketserver.domain.sensor.entity;
 import jakarta.persistence.Id;
 import lombok.*;
 import org.asansocketserver.domain.sensor.dto.request.BarometerRequestDto;
-import org.asansocketserver.domain.sensor.entity.sensorType.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

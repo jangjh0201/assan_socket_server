@@ -11,12 +11,6 @@ public record ImageIDAndNameAndCoordinateDTO(
         String position
 
 ) {
-//    public static ImageIDAndNameAndCoordinateDTO of(Long imageId, String imageName, String position) {
-//        return ImageIDAndNameAndCoordinateDTO.builder()
-//                .imageId(imageId)
-//                .imageName(imageName)
-//                .position(position)
-//                .build();
 }
 
 
