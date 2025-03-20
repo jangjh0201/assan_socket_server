@@ -1,6 +1,8 @@
 package org.asansocketserver.domain.watch.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.asansocketserver.domain.watch.dto.request.WatchRequestDto;
 import org.asansocketserver.domain.watch.dto.request.WatchUpdateRequestDto;
 import org.asansocketserver.domain.watch.dto.response.WatchAllResponseDto;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Slf4j
 @Tag(name = "Watch API", description = "스마트워치 관리 API")
 @RequiredArgsConstructor
 @RequestMapping("/api/watch")
@@ -34,7 +37,7 @@ public class WatchApiController {
 
     @Operation(summary = "스마트워치 조회", description = "UUID를 이용하여 특정 스마트워치를 조회합니다.")
     @GetMapping("/{uuid}")
-    public ResponseEntity<SuccessResponse<?>> findWatch(@PathVariable final String uuid) {
+    public ResponseEntity<SuccessResponse<?>> findWatch(@PathVariable("uuid") final String uuid) {
         final WatchResponseDto responseDto = watchService.findWatch(uuid);
         return SuccessResponse.ok(responseDto);
     }

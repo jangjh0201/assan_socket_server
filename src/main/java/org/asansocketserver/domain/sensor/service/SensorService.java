@@ -104,14 +104,14 @@ public class SensorService {
 
         String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
 
-        if (watch.get().getMaxHR() < heartRate.getValue()) {
+        if (watch.get().getMaxHeartRate() < heartRate.getValue()) {
 
             sendingOperations.convertAndSend(destination,
                     SocketBaseResponse.of(MessageType.HIGH_HEART_RATE,
                             CheckHeartRateDto.of(watchId, watch.get().getName(), watch.get().getHost(), imageId,
                                     watch.get().getCurrentLocation(), "blue", heartRate.getValue())));
             notificationService.createAndSaveNotification(watch.get(), imageId, position, "HIGH-HEART-RATE");
-        } else if (watch.get().getMinHR() > heartRate.getValue()) {
+        } else if (watch.get().getMinHeartRate() > heartRate.getValue()) {
             sendingOperations.convertAndSend(destination,
                     SocketBaseResponse.of(MessageType.LOW_HEART_RATE,
                             CheckHeartRateDto.of(watchId, watch.get().getName(), watch.get().getHost(), imageId,

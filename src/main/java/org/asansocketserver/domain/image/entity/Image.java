@@ -3,8 +3,6 @@ package org.asansocketserver.domain.image.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.asansocketserver.domain.image.dto.ImageIdAndNameDTO;
-import org.asansocketserver.domain.watch.dto.request.WatchUpdateRequestDto;
 
 import java.util.ArrayList;
 import java.util.List;

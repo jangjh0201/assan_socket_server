@@ -53,7 +53,8 @@ public class PositionController {
     }
 
     @Operation(summary = "수집 상태 조회", description = "특정 워치 ID에 대한 수집 상태를 조회합니다.")
-    public ResponseEntity<SuccessResponse<?>> getCollectionStatus(@PathVariable Long id) {
+    @GetMapping("/getCollectionStatus/{id}")
+    public ResponseEntity<SuccessResponse<?>> getCollectionStatus(@PathVariable("id") Long id) {
         return SuccessResponse.ok(positionService.getCollectionState(id));
     }
 }

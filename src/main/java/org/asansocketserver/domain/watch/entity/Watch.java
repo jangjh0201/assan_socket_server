@@ -5,7 +5,7 @@ import lombok.*;
 import org.asansocketserver.domain.image.entity.Coordinate;
 import org.asansocketserver.domain.watch.dto.request.WatchUpdateRequestDto;
 import org.asansocketserver.domain.watch.enums.Gender;
-import org.asansocketserver.domain.watch.enums.HighRisk;
+import org.asansocketserver.domain.watch.enums.RiskType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,15 +30,15 @@ public class Watch {
 
     private String host;
 
-    private int minHR;
+    private Integer minHeartRate;
 
-    private int maxHR;
+    private Integer maxHeartRate;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @Enumerated(EnumType.STRING)
-    private HighRisk highRisk;
+    private RiskType riskType;
 
     private String currentLocation;
 
@@ -69,10 +69,10 @@ public class Watch {
                 .device(device)
                 .name("지정되지않음")
                 .host("지정되지않음")
-                .minHR(60)
-                .maxHR(130)
+                .minHeartRate(60)
+                .maxHeartRate(130)
                 .gender(Gender.MALE)
-                .highRisk(HighRisk.없음)
+                .riskType(RiskType.없음)
                 .build();
     }
 
@@ -85,9 +85,9 @@ public class Watch {
         this.name = watch.getName();
         this.host = watch.getHost();
         this.gender = watch.getGender();
-        this.highRisk = watch.getHighRisk();
-        this.minHR = watch.getMinHR();
-        this.maxHR = watch.getMaxHR();
+        this.riskType = watch.getRiskType();
+        this.minHeartRate = watch.getMinHeartRate();
+        this.maxHeartRate = watch.getMaxHeartRate();
 
         // 기존 리스트를 지우고 sendWatch의 정보를 추가
         this.prohibitedCoordinateList.clear();

@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.asansocketserver.domain.image.dto.*;
 import org.asansocketserver.domain.image.entity.Coordinate;
 import org.asansocketserver.domain.image.entity.Image;
-import org.asansocketserver.domain.image.enums.CoordinateSetting;
+import org.asansocketserver.domain.image.enums.SectorType;
 import org.asansocketserver.domain.image.repository.CoordinateRepository;
 import org.asansocketserver.domain.image.repository.ImageRepository;
 import org.asansocketserver.domain.position.dto.PositionDTO;
@@ -27,33 +27,28 @@ public class ImageService {
     private final ImageRepository imageRepository;
     private final BeaconDataRepository beaconDataRepository;
 
-//    public static String UPLOAD_DIR = "/Users/parkjaeseok/Desktop/image/";
+    public static String UPLOAD_DIR = "C:\\Users\\Gachon\\uploads\\images\\";
+    // public static String UPLOAD_DIR = "/app/uploads/images/";
 
-    public static String UPLOAD_DIR = "/app/uploads/images/";
-
-
-    public ImageResponseDto getImage(Long id)  {
+    public ImageResponseDto getImage(Long id) {
         Optional<Image> image = imageRepository.findById(id);
         String imageUrl = image.get().getImageUrl();
-        return  ImageResponseDto.of(image.get().getId(),image.get().getImageName(),imageUrl);
+        return ImageResponseDto.of(image.get().getId(), image.get().getImageName(), imageUrl);
     }
-
-
 
     public ImageListDTO getImageList(Boolean isWeb) {
 
-        List<Long>  imageIdDtoArrayList = new ArrayList<>();
-        List<String>  imageNameDtoArrayList = new ArrayList<>();
+        List<Long> imageIdDtoArrayList = new ArrayList<>();
+        List<String> imageNameDtoArrayList = new ArrayList<>();
         List<Image> images = null;
 
-        if(!isWeb){
+        if (!isWeb) {
             images = imageRepository.findAllByIsWebFalse();
             for (Image image : images) {
                 imageIdDtoArrayList.add(image.getId());
                 imageNameDtoArrayList.add(image.getImageName());
             }
-        }
-        else {
+        } else {
             images = imageRepository.findAllByIsWebTrue();
             for (Image image : images) {
                 imageIdDtoArrayList.add(image.getId());
@@ -70,31 +65,29 @@ public class ImageService {
     public Long saveImage(MultipartFile file) throws IOException {
 
         byte[] bytes = file.getBytes();
-        Path path = Paths.get(UPLOAD_DIR   + file.getOriginalFilename());
+        Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
         Files.write(path, bytes);
 
-        Image image = Image.builder().imageUrl("/images/" + file.getOriginalFilename()).imageName("지정되지 않음").isWeb(false).build();
+        Image image = Image.builder().imageUrl("/images/" + file.getOriginalFilename()).imageName("지정되지 않음")
+                .isWeb(false).build();
         Image saveImage = imageRepository.save(image);
         return saveImage.getId();
     }
 
-
     public Long nameChange(ImageIdAndNameDTO imageIdAndNameDTO) {
 
-        Image image = (imageRepository.findById(imageIdAndNameDTO.getImageId()).orElseThrow(() ->
-                new IllegalArgumentException("해당 이미지가 존재하지 않습니다 :" + imageIdAndNameDTO.getImageId())));
-
+        Image image = (imageRepository.findById(imageIdAndNameDTO.getImageId()).orElseThrow(
+                () -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다 :" + imageIdAndNameDTO.getImageId())));
 
         image.updateName(imageIdAndNameDTO.getImageName());
 
         return image.getId();
     }
 
-
     public void deleteImage(Long imageId) {
 
-        Image image = (imageRepository.findById(imageId).orElseThrow(() ->
-                new IllegalArgumentException("해당 이미지가 존재하지 않습니다 :" + imageId)));
+        Image image = (imageRepository.findById(imageId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다 :" + imageId)));
 
         beaconDataRepository.deleteAllByImageId(image.getId());
         imageRepository.delete(image);
@@ -103,20 +96,22 @@ public class ImageService {
 
     public void saveImagePositionAndCoordinates(LabelDataDTO labelDataDTO) {
 
-        Image image = (imageRepository.findById(labelDataDTO.getImageId()).orElseThrow(() ->
-                new IllegalArgumentException("해당 이미지가 존재하지 않습니다")));
+        Image image = (imageRepository.findById(labelDataDTO.getImageId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다")));
 
+        // Coordinate existingCoordinate =
+        // coordinateRepository.findByImageAndPosition(image,
+        // labelDataDTO.getPosition());
+        //
+        // if (existingCoordinate != null) {
+        // throw new IllegalArgumentException("해당 이미지의 위치가 이미 존재합니다.");
+        // }
 
-//        Coordinate existingCoordinate = coordinateRepository.findByImageAndPosition(image, labelDataDTO.getPosition());
-//
-//        if (existingCoordinate != null) {
-//            throw new IllegalArgumentException("해당 이미지의 위치가 이미 존재합니다.");
-//        }
-
-//        boolean isDuplicateName = coordinateRepository.findByPosition(labelDataDTO.getPosition());
-//        if (isDuplicateName) {
-//            throw new IllegalArgumentException("중복 이름의 위치가 존재합니다.");
-//        }
+        // boolean isDuplicateName =
+        // coordinateRepository.findByPosition(labelDataDTO.getPosition());
+        // if (isDuplicateName) {
+        // throw new IllegalArgumentException("중복 이름의 위치가 존재합니다.");
+        // }
 
         try {
             Coordinate coordinate = Coordinate.builder()
@@ -136,25 +131,21 @@ public class ImageService {
         }
     }
 
-
     public void deleteImagePositionAndCoordinates(String positionName) {
         Optional<Coordinate> coordinate = coordinateRepository.findByPosition(positionName);
         beaconDataRepository.deleteAllByPosition(positionName);
         coordinateRepository.delete(coordinate.get());
     }
 
-
-
-    public List<CoordinateDTO> getPositionAndCoordinateList(Long id , Boolean isWeb) {
+    public List<CoordinateDTO> getPositionAndCoordinateList(Long id, Boolean isWeb) {
         Optional<Image> image = imageRepository.findById(id);
         List<Coordinate> coordinateList = null;
 
-        if(image.isPresent()){
-            if(isWeb){
-                coordinateList  = coordinateRepository.findAllByImageAndIsWebTrue(image.get());
-            }
-            else{
-                coordinateList  = coordinateRepository.findAllByImageAndIsWebFalse(image.get());
+        if (image.isPresent()) {
+            if (isWeb) {
+                coordinateList = coordinateRepository.findAllByImageAndIsWebTrue(image.get());
+            } else {
+                coordinateList = coordinateRepository.findAllByImageAndIsWebFalse(image.get());
             }
         }
 
@@ -184,9 +175,9 @@ public class ImageService {
     public List<PositionDTO> getPositionList(Boolean isWeb) {
         List<Coordinate> coordinateList = null;
 
-        if(isWeb){
+        if (isWeb) {
             coordinateList = coordinateRepository.findAllByIsWebTrue();
-        }else{
+        } else {
             coordinateList = coordinateRepository.findAllByIsWebFalse();
         }
 
@@ -224,44 +215,16 @@ public class ImageService {
                 imageMap.put(dto.imageId(), imageWithCoordinates);
             }
 
-            CoordinateIDAndPositionDTO coordinateDTO = CoordinateIDAndPositionDTO.of(dto.coordinateId(),dto.position());
+            CoordinateIDAndPositionDTO coordinateDTO = CoordinateIDAndPositionDTO.of(dto.coordinateId(),
+                    dto.position());
 
             positionList = imageMap.get(dto.imageId()).positionList();
             positionList.add(coordinateDTO);
-            imageWithCoordinates = ImageAndCoordinateDTO.of(dto.imageId(), dto.imageName(),positionList);
+            imageWithCoordinates = ImageAndCoordinateDTO.of(dto.imageId(), dto.imageName(), positionList);
             imageMap.put(dto.imageId(), imageWithCoordinates);
 
         }
 
-
         return new ArrayList<>(imageMap.values());
     }
-
-    public CoodinateSettingDto setCoordinateSetting(CoodinateSettingDto coordinateSettingDto) {
-        Optional<Coordinate> optionalCoordinate = coordinateRepository.findById(coordinateSettingDto.coordinateId());
-  
-        if (optionalCoordinate.isPresent()) {
-
-            Coordinate coordinate = optionalCoordinate.get();
-            String setting = coordinateSettingDto.setting();
-
-            CoordinateSetting coordinateSetting = mapSettingToEnum(setting);
-            coordinate.updateSetting(coordinateSetting);
-
-        }
-
-        return coordinateSettingDto;
-    }
-
-    private CoordinateSetting mapSettingToEnum(String setting) {
-        return switch (setting) {
-            case "MAN" -> CoordinateSetting.MAN;
-            case "FEMALE" -> CoordinateSetting.FEMALE;
-            case "PROHIBITION" -> CoordinateSetting.PROHIBITION;
-            default -> null;
-        };
-    }
 }
-
-
-

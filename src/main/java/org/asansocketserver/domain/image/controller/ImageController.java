@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.asansocketserver.domain.image.dto.*;
-import org.asansocketserver.domain.image.enums.CoordinateSetting;
+import org.asansocketserver.domain.image.enums.SectorType;
 import org.asansocketserver.domain.image.service.ImageService;
 import org.asansocketserver.domain.position.dto.PositionDTO;
 import org.asansocketserver.global.common.SuccessResponse;
@@ -30,7 +30,7 @@ public class ImageController {
         // 이미지 조회 api
         @Operation(summary = "이미지 조회 API", description = "주어진 이미지 id에 해당하는 이미지를 조회합니다.")
         @GetMapping("/getImage/{id}")
-        public ResponseEntity<SuccessResponse<?>> getImage(@PathVariable Long id) {
+        public ResponseEntity<SuccessResponse<?>> getImage(@PathVariable("id") Long id) {
                 ImageResponseDto responseDto = imageService.getImage(id);
                 return SuccessResponse.ok(responseDto);
         }
@@ -53,7 +53,7 @@ public class ImageController {
         // 이미지 삭제 api
         @Operation(summary = "이미지 삭제 API", description = "주어진 이미지 id에 해당하는 이미지를 삭제합니다.")
         @DeleteMapping("/deleteImage/{imageId}")
-        public ResponseEntity<SuccessResponse<?>> deleteImage(@PathVariable Long imageId) {
+        public ResponseEntity<SuccessResponse<?>> deleteImage(@PathVariable("id") Long imageId) {
                 imageService.deleteImage(imageId);
                 return SuccessResponse.ok(null);
         }
@@ -69,7 +69,7 @@ public class ImageController {
         // 이미지내에 설정한 위치들과 해당 좌표 목록을 가져오는 api
         @Operation(summary = "이미지 내 위치 및 좌표 목록 조회 API", description = "주어진 이미지 id와 isWeb 파라미터에 따라 위치와 좌표 목록을 조회합니다.")
         @GetMapping("/getPositionAndCoordinateList/{id}")
-        public ResponseEntity<SuccessResponse<?>> getPositionAndCoordinateList(@PathVariable Long id,
+        public ResponseEntity<SuccessResponse<?>> getPositionAndCoordinateList(@PathVariable("id") Long id,
                         @RequestParam("isWeb") Boolean isWeb) {
                 List<CoordinateDTO> positionList = imageService.getPositionAndCoordinateList(id, isWeb);
                 return SuccessResponse.ok(positionList);
@@ -101,7 +101,7 @@ public class ImageController {
 
         @Operation(summary = "이미지 내 위치 및 범위 삭제 API (앱)", description = "주어진 positionName에 해당하는 이미지 내 위치와 범위를 삭제합니다.")
         @DeleteMapping("/deleteImagePositionAndCoordinates/{positionName}")
-        public ResponseEntity<SuccessResponse<?>> deleteImagePositionAndCoordinates(@PathVariable String positionName) {
+        public ResponseEntity<SuccessResponse<?>> deleteImagePositionAndCoordinates(@PathVariable("positionName") String positionName) {
                 imageService.deleteImagePositionAndCoordinates(positionName);
                 return SuccessResponse.ok(null);
         }

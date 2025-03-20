@@ -66,10 +66,9 @@ public class PositionService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final SimpMessageSendingOperations sendingOperations;
 
-    // public static String UPLOAD_DIR =
-    // "C:\\Users\\AMC-guest\\uploads\\beacon_data\\";
+    public static String UPLOAD_DIR = "C:\\Users\\Gachon\\Desktop\\BecaonCsvAsan";
     // public static String UPLOAD_DIR = "/Users/parkjaeseok/Desktop/csv/";
-    public static String UPLOAD_DIR = "/app/uploads/beaconCsv/";
+    // public static String UPLOAD_DIR = "/app/uploads/beaconCsv/";
 
     @Value("${flask.url}")
     private String flaskUrl;

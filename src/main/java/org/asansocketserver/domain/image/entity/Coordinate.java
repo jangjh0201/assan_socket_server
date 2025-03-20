@@ -3,7 +3,7 @@ package org.asansocketserver.domain.image.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.asansocketserver.domain.watch.entity.WatchCoordinateProhibition;
-import org.asansocketserver.domain.image.enums.CoordinateSetting;
+import org.asansocketserver.domain.image.enums.SectorType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,7 +40,7 @@ public class Coordinate {
     private BigDecimal endY;
 
     @Enumerated(EnumType.STRING)
-    private CoordinateSetting setting;
+    private SectorType setting;
 
     private Boolean isWeb;
 
@@ -48,7 +48,7 @@ public class Coordinate {
     @OneToMany(mappedBy = "coordinate", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WatchCoordinateProhibition> watchCoordinateProhibitions;
 
-    public void updateSetting(CoordinateSetting setting) {
+    public void updateSetting(SectorType setting) {
         this.setting = setting;
     }
 }

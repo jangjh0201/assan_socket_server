@@ -4,13 +4,11 @@ import org.asansocketserver.batch.cdc.entity.SensorData;
 import org.asansocketserver.batch.cdc.entity.SensorRow;
 import org.asansocketserver.batch.cdc.repository.SensorDataRepository;
 import org.asansocketserver.domain.sensor.entity.*;
-import org.asansocketserver.domain.watch.entity.Watch;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
