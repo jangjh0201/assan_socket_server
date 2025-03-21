@@ -17,22 +17,20 @@ public class Notification {
 
     @Id
     private String id;
-    private Long watchId;
-    private Long imageId;
-    private String watchName;
-    private String watchHost;
+    private String riskname;
+    private Long patientId;
+    private String patientName;
+    private String patientRoom;
     private String position;
-    private String alarmType;
     private LocalDateTime timestamp;
 
     public static Notification createNotification(NotificationRequestDTO notificationRequestDto) {
         return Notification.builder()
-                .watchId(notificationRequestDto.watchId())
-                .imageId(notificationRequestDto.imageId())
-                .watchName(notificationRequestDto.watchName())
-                .watchHost(notificationRequestDto.watchHost())
+                .riskname(notificationRequestDto.riskName())
+                .patientId(notificationRequestDto.patientId())
+                .patientName(notificationRequestDto.patientName())
+                .patientRoom(notificationRequestDto.patientRoomName())
                 .position(notificationRequestDto.position())
-                .alarmType(notificationRequestDto.alarmType())
                 .timestamp(notificationRequestDto.timeStamp())
                 .build();
     }
