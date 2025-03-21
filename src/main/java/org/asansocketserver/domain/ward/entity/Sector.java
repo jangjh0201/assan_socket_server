@@ -1,9 +1,10 @@
-package org.asansocketserver.domain.image.entity;
+package org.asansocketserver.domain.ward.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.asansocketserver.domain.watch.entity.WatchCoordinateProhibition;
-import org.asansocketserver.domain.image.enums.SectorType;
+
+import org.asansocketserver.domain.ward.enums.SectorType;
+import org.asansocketserver.domain.watch.entity.RestrictedArea;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,18 +15,16 @@ import java.util.List;
 @Getter
 @Table(name = "coordinate")
 @Entity
-public class Coordinate {
+public class Sector {
     @Id
     @GeneratedValue
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="image")
-    private Image image;
+    @JoinColumn(name = "ward")
+    private Ward ward;
 
     private String position;
-    private String latitude;
-    private String longitude;
 
     @Column(precision = 10, scale = 4)
     private BigDecimal startX;
@@ -40,15 +39,13 @@ public class Coordinate {
     private BigDecimal endY;
 
     @Enumerated(EnumType.STRING)
-    private SectorType setting;
-
-    private Boolean isWeb;
+    private SectorType sectorType;
 
     // OneToMany relationship with cascade type ALL
     @OneToMany(mappedBy = "coordinate", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WatchCoordinateProhibition> watchCoordinateProhibitions;
+    private List<RestrictedArea> restrictedAreas;
 
-    public void updateSetting(SectorType setting) {
-        this.setting = setting;
+    public void updateSectorType(SectorType sectorType) {
+        this.sectorType = sectorType;
     }
 }

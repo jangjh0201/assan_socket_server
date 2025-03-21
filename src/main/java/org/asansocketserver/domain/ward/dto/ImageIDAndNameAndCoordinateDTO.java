@@ -1,4 +1,4 @@
-package org.asansocketserver.domain.image.dto;
+package org.asansocketserver.domain.ward.dto;
 
 import lombok.AccessLevel;
 import lombok.Builder;

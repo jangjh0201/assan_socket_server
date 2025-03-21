@@ -1,15 +1,16 @@
-package org.asansocketserver.domain.image.service;
+package org.asansocketserver.domain.ward.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.asansocketserver.domain.image.dto.*;
-import org.asansocketserver.domain.image.entity.Coordinate;
-import org.asansocketserver.domain.image.entity.Image;
-import org.asansocketserver.domain.image.enums.SectorType;
-import org.asansocketserver.domain.image.repository.CoordinateRepository;
-import org.asansocketserver.domain.image.repository.ImageRepository;
+
 import org.asansocketserver.domain.position.dto.PositionDTO;
 import org.asansocketserver.domain.position.repository.BeaconDataRepository;
+import org.asansocketserver.domain.ward.dto.*;
+import org.asansocketserver.domain.ward.entity.Sector;
+import org.asansocketserver.domain.ward.entity.Ward;
+import org.asansocketserver.domain.ward.enums.SectorType;
+import org.asansocketserver.domain.ward.repository.CoordinateRepository;
+import org.asansocketserver.domain.ward.repository.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,34 +32,38 @@ public class ImageService {
     // public static String UPLOAD_DIR = "/app/uploads/images/";
 
     public ImageResponseDto getImage(Long id) {
-        Optional<Image> image = imageRepository.findById(id);
-        String imageUrl = image.get().getImageUrl();
-        return ImageResponseDto.of(image.get().getId(), image.get().getImageName(), imageUrl);
+        Optional<Ward> ward = imageRepository.findById(id);
+        String imageUrl = ward.get().getImageUrl();
+        return ImageResponseDto.of(ward.get().getId(), ward.get().getName(), imageUrl);
     }
 
-    public ImageListDTO getImageList(Boolean isWeb) {
+    public ImageListDTO getImageList() {
 
-        List<Long> imageIdDtoArrayList = new ArrayList<>();
-        List<String> imageNameDtoArrayList = new ArrayList<>();
-        List<Image> images = null;
+        List<Long> wardIdDTOs = new ArrayList<>();
+        List<String> wardNameDTOs = new ArrayList<>();
+        // List<Image> images = null;
 
-        if (!isWeb) {
-            images = imageRepository.findAllByIsWebFalse();
-            for (Image image : images) {
-                imageIdDtoArrayList.add(image.getId());
-                imageNameDtoArrayList.add(image.getImageName());
-            }
-        } else {
-            images = imageRepository.findAllByIsWebTrue();
-            for (Image image : images) {
-                imageIdDtoArrayList.add(image.getId());
-                imageNameDtoArrayList.add(image.getImageName());
-            }
+        // if (!isWeb) {
+        // images = imageRepository.findAllByIsWebFalse();
+        // for (Image ward : images) {
+        // wardIdDTOs.add(ward.getId());
+        // wardNameDTOs.add(ward.getImageName());
+        // }
+        // } else {
+        // images = imageRepository.findAllByIsWebTrue();
+        // for (Image ward : images) {
+        // wardIdDTOs.add(ward.getId());
+        // wardNameDTOs.add(ward.getImageName());
+        // }
+        // }
+        for (Ward ward : imageRepository.findAll()) {
+            wardIdDTOs.add(ward.getId());
+            wardNameDTOs.add(ward.getName());
         }
 
         ImageListDTO imageListDTO = new ImageListDTO();
-        imageListDTO.setImageIds(imageIdDtoArrayList);
-        imageListDTO.setImageNames(imageNameDtoArrayList);
+        imageListDTO.setImageIds(wardIdDTOs);
+        imageListDTO.setImageNames(wardNameDTOs);
         return imageListDTO;
     }
 
@@ -68,39 +73,28 @@ public class ImageService {
         Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
         Files.write(path, bytes);
 
-        Image image = Image.builder().imageUrl("/images/" + file.getOriginalFilename()).imageName("지정되지 않음")
-                .isWeb(false).build();
-        Image saveImage = imageRepository.save(image);
+        Ward ward = Ward.builder().imageUrl("/images/" + file.getOriginalFilename()).name("지정되지 않음").build();
+        Ward saveImage = imageRepository.save(ward);
         return saveImage.getId();
-    }
-
-    public Long nameChange(ImageIdAndNameDTO imageIdAndNameDTO) {
-
-        Image image = (imageRepository.findById(imageIdAndNameDTO.getImageId()).orElseThrow(
-                () -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다 :" + imageIdAndNameDTO.getImageId())));
-
-        image.updateName(imageIdAndNameDTO.getImageName());
-
-        return image.getId();
     }
 
     public void deleteImage(Long imageId) {
 
-        Image image = (imageRepository.findById(imageId)
+        Ward ward = (imageRepository.findById(imageId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다 :" + imageId)));
 
-        beaconDataRepository.deleteAllByImageId(image.getId());
-        imageRepository.delete(image);
+        beaconDataRepository.deleteAllByImageId(ward.getId());
+        imageRepository.delete(ward);
 
     }
 
     public void saveImagePositionAndCoordinates(LabelDataDTO labelDataDTO) {
 
-        Image image = (imageRepository.findById(labelDataDTO.getImageId())
+        Ward ward = (imageRepository.findById(labelDataDTO.getImageId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 이미지가 존재하지 않습니다")));
 
         // Coordinate existingCoordinate =
-        // coordinateRepository.findByImageAndPosition(image,
+        // coordinateRepository.findByImageAndPosition(ward,
         // labelDataDTO.getPosition());
         //
         // if (existingCoordinate != null) {
@@ -114,56 +108,53 @@ public class ImageService {
         // }
 
         try {
-            Coordinate coordinate = Coordinate.builder()
-                    .image(image)
+            Sector sector = Sector.builder()
+                    .ward(ward)
                     .position(labelDataDTO.getPosition())
-                    .latitude(labelDataDTO.getLatitude())
-                    .longitude(labelDataDTO.getLongitude())
                     .startX(labelDataDTO.getStartX())
                     .startY(labelDataDTO.getStartY())
                     .endX(labelDataDTO.getEndX())
-                    .endY(labelDataDTO.getEndY())
-                    .isWeb(labelDataDTO.getIsWeb()).build();
+                    .endY(labelDataDTO.getEndY()).build();
 
-            coordinateRepository.save(coordinate);
+            coordinateRepository.save(sector);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public void deleteImagePositionAndCoordinates(String positionName) {
-        Optional<Coordinate> coordinate = coordinateRepository.findByPosition(positionName);
+        Optional<Sector> sector = coordinateRepository.findByPosition(positionName);
         beaconDataRepository.deleteAllByPosition(positionName);
-        coordinateRepository.delete(coordinate.get());
+        coordinateRepository.delete(sector.get());
     }
 
     public List<CoordinateDTO> getPositionAndCoordinateList(Long id, Boolean isWeb) {
-        Optional<Image> image = imageRepository.findById(id);
-        List<Coordinate> coordinateList = null;
+        Optional<Ward> ward = imageRepository.findById(id);
+        List<Sector> coordinateList = null;
 
-        if (image.isPresent()) {
-            if (isWeb) {
-                coordinateList = coordinateRepository.findAllByImageAndIsWebTrue(image.get());
-            } else {
-                coordinateList = coordinateRepository.findAllByImageAndIsWebFalse(image.get());
-            }
-        }
+        // if (ward.isPresent()) {
+        //     if (isWeb) {
+        //         coordinateList = coordinateRepository.findAllByImageAndIsWebTrue(ward.get());
+        //     } else {
+        //         coordinateList = coordinateRepository.findAllByImageAndIsWebFalse(ward.get());
+        //     }
+        // }
+
+        coordinateList = coordinateRepository.findAllByImage(ward.get());
 
         List<CoordinateDTO> coordinateDTOList = new ArrayList<>();
 
         if (!coordinateList.isEmpty()) {
-            for (Coordinate coordinate : coordinateList) {
+            for (Sector sector : coordinateList) {
                 CoordinateDTO coordinateDTO = new CoordinateDTO();
-                coordinateDTO.setImageId(coordinate.getImage().getId());
-                coordinateDTO.setCoordinateId(coordinate.getId());
-                coordinateDTO.setLatitude(coordinate.getLatitude());
-                coordinateDTO.setLongitude(coordinate.getLongitude());
-                coordinateDTO.setPosition(coordinate.getPosition());
-                coordinateDTO.setStartX(coordinate.getStartX());
-                coordinateDTO.setStartY(coordinate.getStartY());
-                coordinateDTO.setEndX(coordinate.getEndX());
-                coordinateDTO.setEndY(coordinate.getEndY());
-                coordinateDTO.setSetting(String.valueOf(coordinate.getSetting()));
+                coordinateDTO.setImageId(sector.getWard().getId());
+                coordinateDTO.setCoordinateId(sector.getId());
+                coordinateDTO.setPosition(sector.getPosition());
+                coordinateDTO.setStartX(sector.getStartX());
+                coordinateDTO.setStartY(sector.getStartY());
+                coordinateDTO.setEndX(sector.getEndX());
+                coordinateDTO.setEndY(sector.getEndY());
+                coordinateDTO.setSetting(String.valueOf(sector.getSetting()));
                 coordinateDTOList.add(coordinateDTO);
             }
         }
@@ -172,25 +163,26 @@ public class ImageService {
     }
 
     @Transactional
-    public List<PositionDTO> getPositionList(Boolean isWeb) {
-        List<Coordinate> coordinateList = null;
+    public List<PositionDTO> getPositionList() {
+        List<Sector> coordinateList = null;
+        coordinateList = coordinateRepository.findAll();
 
-        if (isWeb) {
-            coordinateList = coordinateRepository.findAllByIsWebTrue();
-        } else {
-            coordinateList = coordinateRepository.findAllByIsWebFalse();
-        }
+        // if (isWeb) {
+        // coordinateList = coordinateRepository.findAllByIsWebTrue();
+        // } else {
+        // coordinateList = coordinateRepository.findAllByIsWebFalse();
+        // }
 
         List<PositionDTO> positionList = new ArrayList<>();
 
         if (coordinateList.isEmpty()) {
             throw new IllegalArgumentException("해당 이미지의 위치 목록이 존재하지 않습니다");
         } else {
-            for (Coordinate coordinate : coordinateList) {
+            for (Sector sector : coordinateList) {
                 PositionDTO positionDTO = new PositionDTO();
-                positionDTO.setImageId(coordinate.getImage().getId());
-                positionDTO.setCoordinateId(coordinate.getId());
-                positionDTO.setPosition(coordinate.getPosition());
+                positionDTO.setImageId(sector.getImage().getId());
+                positionDTO.setCoordinateId(sector.getId());
+                positionDTO.setPosition(sector.getPosition());
 
                 positionList.add(positionDTO);
             }

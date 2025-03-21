@@ -1,4 +1,4 @@
-package org.asansocketserver.domain.image.dto;
+package org.asansocketserver.domain.ward.dto;
 
 import jakarta.persistence.Column;
 import lombok.Getter;

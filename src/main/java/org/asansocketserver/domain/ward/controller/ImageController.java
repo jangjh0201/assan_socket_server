@@ -1,4 +1,4 @@
-package org.asansocketserver.domain.image.controller;
+package org.asansocketserver.domain.ward.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -7,10 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
-import org.asansocketserver.domain.image.dto.*;
-import org.asansocketserver.domain.image.enums.SectorType;
-import org.asansocketserver.domain.image.service.ImageService;
+
 import org.asansocketserver.domain.position.dto.PositionDTO;
+import org.asansocketserver.domain.ward.dto.*;
+import org.asansocketserver.domain.ward.enums.SectorType;
+import org.asansocketserver.domain.ward.service.ImageService;
 import org.asansocketserver.global.common.SuccessResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,8 +39,8 @@ public class ImageController {
         // 이미지 목록 조회 api -> RequestParam 추가
         @Operation(summary = "이미지 목록 조회 API", description = "isWeb 파라미터에 따라 이미지 목록을 조회합니다.")
         @GetMapping("/getImageList")
-        public ResponseEntity<SuccessResponse<?>> getImageList(@RequestParam("isWeb") Boolean isWeb) {
-                ImageListDTO responseDto = imageService.getImageList(isWeb);
+        public ResponseEntity<SuccessResponse<?>> getImageList() {
+                ImageListDTO responseDto = imageService.getImageList();
                 return SuccessResponse.ok(responseDto);
         }
 
@@ -61,8 +62,8 @@ public class ImageController {
         // 이미지내에 설정한 위치들의 이름 목록을 가져오는 api (앱에서 비콘을 모으기 위해 위치 목록을 띄울 경우 사용)
         @Operation(summary = "이미지 내 위치 목록 조회 API", description = "isWeb 파라미터에 따라 이미지 내 위치 이름 목록을 조회합니다.")
         @GetMapping("/getPositionList")
-        public ResponseEntity<SuccessResponse<?>> getPositionList(@RequestParam("isWeb") Boolean isWeb) {
-                List<PositionDTO> positionList = imageService.getPositionList(isWeb);
+        public ResponseEntity<SuccessResponse<?>> getPositionList() {
+                List<PositionDTO> positionList = imageService.getPositionList();
                 return SuccessResponse.ok(positionList);
         }
 
