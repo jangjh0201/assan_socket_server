@@ -6,16 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.asansocketserver.domain.image.entity.Coordinate;
-import org.asansocketserver.domain.image.repository.CoordinateRepository;
-import org.asansocketserver.domain.notification.dto.NotificationRequestDTO;
-import org.asansocketserver.domain.notification.entity.Notification;
-import org.asansocketserver.domain.notification.mongorepository.NotificationMongoRepository;
+
 import org.asansocketserver.domain.notification.service.NotificationService;
 import org.asansocketserver.domain.position.dto.request.*;
-import org.asansocketserver.domain.position.dto.response.CheckContactionDto;
-import org.asansocketserver.domain.position.dto.response.CheckGenderDto;
-import org.asansocketserver.domain.position.dto.response.CheckProhibitionDto;
 import org.asansocketserver.domain.position.dto.response.PositionResponseDto;
 import org.asansocketserver.domain.position.entity.BeaconData;
 import org.asansocketserver.domain.position.entity.PositionData;
@@ -24,14 +17,10 @@ import org.asansocketserver.domain.position.mongorepository.PositionMongoReposit
 import org.asansocketserver.domain.position.repository.BeaconDataRepository;
 import org.asansocketserver.domain.position.repository.PositionStateRepository;
 import org.asansocketserver.domain.position.util.UniqueBSSIDMap;
+import org.asansocketserver.domain.ward.repository.CoordinateRepository;
 import org.asansocketserver.domain.watch.entity.Watch;
-import org.asansocketserver.domain.watch.entity.WatchCoordinateProhibition;
-import org.asansocketserver.domain.watch.entity.WatchNoContact;
 import org.asansocketserver.domain.watch.repository.WatchRepository;
 import org.asansocketserver.global.error.exception.EntityNotFoundException;
-import org.asansocketserver.socket.dto.MessageType;
-import org.asansocketserver.socket.dto.SocketBaseResponse;
-import org.hibernate.annotations.Check;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +33,6 @@ import org.springframework.web.client.RestTemplate;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -241,7 +229,7 @@ public class PositionService {
 
         String color = "null";
 
-        return PositionResponseDto.of(watch.getId(), watch.getName(), imageId, color, prediction);
+        return PositionResponseDto.of(watch.getId(), watch.getPatient().getName(), imageId, color, prediction);
     }
 
     private String sendUniqueBSSIDMapToFlask(UniqueBSSIDMap uniqueBSSIDMap) throws JSONException {

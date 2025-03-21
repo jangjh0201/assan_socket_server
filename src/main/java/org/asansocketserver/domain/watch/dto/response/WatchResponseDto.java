@@ -5,20 +5,26 @@ import lombok.Builder;
 import org.asansocketserver.domain.watch.entity.Watch;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 @Builder(access = AccessLevel.PRIVATE)
 public record WatchResponseDto(
         Long watchId,
         String device,
-        String name,
-        String host
+
+        @JsonProperty("name")
+        String patientName,
+        
+        @JsonProperty("host")
+        String patientWard
 ) {
     public static WatchResponseDto of(Watch watch) {
         return WatchResponseDto.builder()
                 .watchId(watch.getId())
                 .device(watch.getDevice())
-                .name(watch.getName())
-                .host(watch.getHost())
+                .patientName(watch.getPatient().getName())
+                .patientWard(watch.getPatient().getWard())
                 .build();
     }
 

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public record CheckHeartRateDto(
         Long watchId,
         String watchName,
-        String watchHost,
+        String patientRoomName,
         Integer heartRate,
         Long imageId,
         String position,
@@ -16,11 +16,12 @@ public record CheckHeartRateDto(
         LocalDateTime currentTime
 
 ) {
-    public static CheckHeartRateDto of(Long watchId, String watchName, String watchHost,Long imageId,String position,String color ,Integer heartRate) {
+    public static CheckHeartRateDto of(Long watchId, String watchName, String patientRoomName, Long imageId,
+            String position, String color, Integer heartRate) {
         return CheckHeartRateDto.builder()
                 .watchId(watchId)
                 .watchName(watchName)
-                .watchHost(watchHost)
+                .patientRoomName(patientRoomName)
                 .heartRate(heartRate)
                 .imageId(imageId)
                 .position(position)
@@ -28,4 +29,3 @@ public record CheckHeartRateDto(
                 .currentTime(LocalDateTime.now()).build();
     }
 }
-

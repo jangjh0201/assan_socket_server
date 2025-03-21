@@ -2,13 +2,7 @@ package org.asansocketserver.domain.watch.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.asansocketserver.domain.image.entity.Coordinate;
-import org.asansocketserver.domain.watch.dto.request.WatchUpdateRequestDto;
-import org.asansocketserver.domain.watch.enums.Gender;
-import org.asansocketserver.domain.watch.enums.RiskType;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.asansocketserver.domain.patient.entity.Patient;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -26,82 +20,22 @@ public class Watch {
 
     private String device;
 
-    private String name;
-
-    private String host;
-
-    private Integer minHeartRate;
-
-    private Integer maxHeartRate;
-
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
-
-    @Enumerated(EnumType.STRING)
-    private RiskType riskType;
-
     private String currentLocation;
 
-    @OneToMany(mappedBy = "watch", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WatchCoordinateProhibition> prohibitedCoordinateList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "watch", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WatchNoContact> noContactWatchList = new ArrayList<>();
+    @OneToOne
+    @JoinColumn(name = "patient_id")
+    private Patient patient;
 
     public void updateCurrentLocation(String currentLocation) {
         this.currentLocation = currentLocation;
 
     }
 
-    public void addProhibitedCoordinate(Coordinate coordinate) {
-        WatchCoordinateProhibition restriction = WatchCoordinateProhibition.createProhibition(this, coordinate);
-        prohibitedCoordinateList.add(restriction);
-    }
-
-    public void addNoContactWatch(Watch noContactWatch) {
-        WatchNoContact watchNoContact = WatchNoContact.createNoContact(this, noContactWatch);
-        noContactWatchList.add(watchNoContact);
-    }
-
     public static Watch createWatch(String uuid, String device) {
         return Watch.builder()
                 .uuid(uuid)
                 .device(device)
-                .name("지정되지않음")
-                .host("지정되지않음")
-                .minHeartRate(60)
-                .maxHeartRate(130)
-                .gender(Gender.MALE)
-                .riskType(RiskType.없음)
                 .build();
-    }
-
-    public void updateWatch(WatchUpdateRequestDto requestDto) {
-        this.name = requestDto.name();
-        this.host = requestDto.host();
-    }
-
-    public void updateWatchForTransfer(Watch watch) {
-        this.name = watch.getName();
-        this.host = watch.getHost();
-        this.gender = watch.getGender();
-        this.riskType = watch.getRiskType();
-        this.minHeartRate = watch.getMinHeartRate();
-        this.maxHeartRate = watch.getMaxHeartRate();
-
-        // 기존 리스트를 지우고 sendWatch의 정보를 추가
-        this.prohibitedCoordinateList.clear();
-        for (WatchCoordinateProhibition prohibition : watch.getProhibitedCoordinateList()) {
-            this.addProhibitedCoordinate(prohibition.getCoordinate());
-        }
-
-        for (WatchNoContact noContact : watch.getNoContactWatchList()) {
-            this.addNoContactWatch(noContact.getNoContactWatch());
-        }
-    }
-
-    public void updateWatchNameForTransfer(String watchName) {
-        this.name = watchName;
     }
 
 }

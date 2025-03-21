@@ -2,8 +2,7 @@ package org.asansocketserver.domain.sensor.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.asansocketserver.domain.image.entity.Coordinate;
-import org.asansocketserver.domain.image.repository.CoordinateRepository;
+
 import org.asansocketserver.domain.notification.service.NotificationService;
 import org.asansocketserver.domain.sensor.dto.request.*;
 import org.asansocketserver.domain.sensor.dto.response.*;
@@ -14,6 +13,8 @@ import org.asansocketserver.domain.sensor.mongorepository.accelerometer.SensorAc
 import org.asansocketserver.domain.sensor.mongorepository.barometer.SensorBarometerRepository;
 import org.asansocketserver.domain.sensor.mongorepository.heartrate.SensorHeartRateRepository;
 import org.asansocketserver.domain.sensor.mongorepository.light.SensorLightRepository;
+import org.asansocketserver.domain.ward.entity.Sector;
+import org.asansocketserver.domain.ward.repository.CoordinateRepository;
 import org.asansocketserver.domain.watch.entity.Watch;
 import org.asansocketserver.domain.watch.repository.WatchRepository;
 import org.asansocketserver.global.error.exception.EntityNotFoundException;
@@ -90,33 +91,24 @@ public class SensorService {
         Long watchId = getWatchIdFromSession(simpSessionAttributes);
         Optional<Watch> watch = watchRepository.findById(watchId);
         HeartRate heartRate = createHeartRate(heartRateRequestDto);
-        String position = watch.get().getCurrentLocation();
-        Optional<Coordinate> coordinate = Optional.empty();
-        Long imageId = null;
 
-        if (position != null && !position.isEmpty()) {
-            coordinate = coordinateRepository.findByPositionAndIsWebTrue(position);
-            if (coordinate.isPresent()) {
-                imageId = coordinate.get().getImage().getId();
-            }
-        }
+        // 위치 측정
+        String position = watch.get().getCurrentLocation();
+
         createHeartRateAndSave(watchId, heartRateRequestDto);
 
         String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
 
-        if (watch.get().getMaxHeartRate() < heartRate.getValue()) {
+        if (watch.get().getPatient().getMaxHeartRate() < heartRate.getValue()) {
 
-            sendingOperations.convertAndSend(destination,
-                    SocketBaseResponse.of(MessageType.HIGH_HEART_RATE,
-                            CheckHeartRateDto.of(watchId, watch.get().getName(), watch.get().getHost(), imageId,
-                                    watch.get().getCurrentLocation(), "blue", heartRate.getValue())));
-            notificationService.createAndSaveNotification(watch.get(), imageId, position, "HIGH-HEART-RATE");
-        } else if (watch.get().getMinHeartRate() > heartRate.getValue()) {
-            sendingOperations.convertAndSend(destination,
-                    SocketBaseResponse.of(MessageType.LOW_HEART_RATE,
-                            CheckHeartRateDto.of(watchId, watch.get().getName(), watch.get().getHost(), imageId,
-                                    watch.get().getCurrentLocation(), "red", heartRate.getValue())));
-            notificationService.createAndSaveNotification(watch.get(), imageId, position, "LOW-HEART-RATE");
+            // WebSocket 고심박 알림 to 프론트 구현 필요
+
+            notificationService.createAndSaveNotification(watch.get(), position, "고심박");
+        } else if (watch.get().getPatient().getMinHeartRate() > heartRate.getValue()) {
+
+            // WebSocket 저심박 알림 to 프론트 구현 필요
+            
+            notificationService.createAndSaveNotification(watch.get(), position, "저심박");
         }
 
         Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);

@@ -3,15 +3,14 @@ package org.asansocketserver.domain.watch.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.asansocketserver.domain.image.entity.Coordinate;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
-@Table(name = "watch_coordinate_prohibition")
+@Table(name = "watch_no_contact")
 @Entity
-public class WatchCoordinateProhibition {
+public class NoContact {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,14 +22,13 @@ public class WatchCoordinateProhibition {
     private Watch watch;
 
     @ManyToOne
-    @JoinColumn(name = "coordinate_id", nullable = false)
-    private Coordinate coordinate;
+    @JoinColumn(name = "no_contact_watch_id")
+    private Watch noContact;
 
-    // 생성 메서드
-    public static WatchCoordinateProhibition createProhibition(Watch watch, Coordinate coordinate) {
-        return WatchCoordinateProhibition.builder()
+    public static NoContact createNoContact(Watch watch, Watch noContact) {
+        return NoContact.builder()
                 .watch(watch)
-                .coordinate(coordinate)
+                .noContact(noContact)
                 .build();
     }
 }

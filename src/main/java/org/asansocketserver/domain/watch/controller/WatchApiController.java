@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.asansocketserver.domain.watch.dto.request.WatchRequestDto;
-import org.asansocketserver.domain.watch.dto.request.WatchUpdateRequestDto;
 import org.asansocketserver.domain.watch.dto.response.WatchAllResponseDto;
 import org.asansocketserver.domain.watch.dto.response.WatchResponseDto;
 import org.asansocketserver.domain.watch.service.WatchService;
@@ -49,11 +48,4 @@ public class WatchApiController {
         return SuccessResponse.created(responseDto);
     }
 
-    @Operation(summary = "스마트워치 정보 수정", description = "특정 스마트워치의 정보를 수정합니다.")
-    @PostMapping("/{id}")
-    public ResponseEntity<SuccessResponse<?>> updateWatchInfo(@PathVariable("id") final Long id,
-            @RequestBody final WatchUpdateRequestDto requestDto) {
-        final WatchResponseDto responseDto = watchService.updateWatchInfo(id, requestDto);
-        return SuccessResponse.created(responseDto);
-    }
 }

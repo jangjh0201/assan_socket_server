@@ -1,5 +1,7 @@
 package org.asansocketserver.domain.watch.entity;
 
+import org.asansocketserver.domain.ward.entity.Sector;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,9 +10,9 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
-@Table(name = "watch_no_contact")
+@Table(name = "watch_coordinate_prohibition")
 @Entity
-public class WatchNoContact {
+public class RestrictedArea {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,13 +24,14 @@ public class WatchNoContact {
     private Watch watch;
 
     @ManyToOne
-    @JoinColumn(name = "no_contact_watch_id")
-    private Watch noContactWatch;
+    @JoinColumn(name = "coordinate_id", nullable = false)
+    private Sector coordinate;
 
-    public static WatchNoContact createNoContact(Watch watch, Watch noContactWatch) {
-        return WatchNoContact.builder()
+    // 생성 메서드
+    public static RestrictedArea createProhibition(Watch watch, Sector coordinate) {
+        return RestrictedArea.builder()
                 .watch(watch)
-                .noContactWatch(noContactWatch)
+                .coordinate(coordinate)
                 .build();
     }
 }

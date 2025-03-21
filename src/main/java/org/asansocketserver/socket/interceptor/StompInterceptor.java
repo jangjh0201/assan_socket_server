@@ -67,7 +67,7 @@ public class StompInterceptor implements ChannelInterceptor {
             Optional<Watch> watch = watchRepository.findById(watchId);
             if (!watchId.equals(monitoringId)) {
                 createWatchLiveAndSave(watchId);
-                createSensorDataAndSave(watchId, watch.get().getName());
+                createSensorDataAndSave(watchId, watch.get().getPatient().getName());
                 createPositionAndSave(watchId);
             }
             log.info("[CONNECT]:: watchId : " + watchId);

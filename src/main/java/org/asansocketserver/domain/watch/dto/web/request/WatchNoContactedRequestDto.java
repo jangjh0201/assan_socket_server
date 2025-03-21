@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 public class WatchNoContactedRequestDto {
     private Long watchId;
-    private List<Long> noContactWatchIds;
+    private List<Long> noContactIds;
 }

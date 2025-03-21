@@ -8,11 +8,9 @@ import java.util.Optional;
 
 public interface WatchRepository extends JpaRepository<Watch, Long> {
     Optional<Watch> findByUuid(String uuid);
+
     boolean existsByUuid(String uuid);
 
     void delete(Watch watch);
 
-    List<Watch> findAllByName(String patientName);
-
-    boolean existsByNameAndIdNot(String name, Long watchId);
 }

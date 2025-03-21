@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record WatchProhibitedCoordinatesUpdateRequestDto(
+public record RestrictedAreasUpdateRequestDto(
         Long watchId,
-        List<Long> prohibitedCoordinatesIds) {
+        List<Long> restrictedAreasIds) {
 }
