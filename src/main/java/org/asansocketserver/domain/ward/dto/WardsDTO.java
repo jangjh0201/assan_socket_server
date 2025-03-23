@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ImageListDTO {
+public class WardsDTO {
     private List<Long> imageIds;
     private List<String> imageNames;
 }

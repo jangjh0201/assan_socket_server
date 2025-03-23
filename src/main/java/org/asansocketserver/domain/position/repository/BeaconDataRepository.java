@@ -1,25 +1,18 @@
 package org.asansocketserver.domain.position.repository;
 
-import org.asansocketserver.domain.position.dto.request.BeaconCountsDTO;
 import org.asansocketserver.domain.position.entity.BeaconData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.HashMap;
 import java.util.List;
 
 public interface BeaconDataRepository extends JpaRepository<BeaconData, Integer> {
-    List<BeaconData> findAllByPosition(String positionName);
+    List<BeaconData> findAllBySectorName(String sectorName);
 
-    // @Query("SELECT b.position, c.longitude, c.latitude, COUNT(b) FROM Coordinate
-    // c LEFT JOIN BeaconData b ON b.position = c.position GROUP BY b.position ,
-    // c.longitude, c.latitude")
-    // List<Object[]> findAllBeaconCount();
-
-    @Query("SELECT c.position, COUNT(b) FROM Coordinate c LEFT JOIN BeaconData b ON b.position = c.position GROUP BY c.position")
+    @Query("SELECT s.name, COUNT(b) FROM Sector s LEFT JOIN BeaconData b ON b.sectorName = s.name GROUP BY s.name")
     List<Object[]> findAllBeaconCount();
 
-    public void deleteAllByImageId(Long imageId);
+    public void deleteAllByWardId(Long wardId);
 
-    public void deleteAllByPosition(String positionName);
+    public void deleteAllBySectorName(String sectorName);
 }

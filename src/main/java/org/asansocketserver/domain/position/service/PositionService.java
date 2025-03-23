@@ -8,7 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.asansocketserver.domain.notification.service.NotificationService;
-import org.asansocketserver.domain.position.dto.request.*;
+import org.asansocketserver.domain.position.dto.request.BeaconCountsDTO;
+import org.asansocketserver.domain.position.dto.request.BeaconDataDTO;
+import org.asansocketserver.domain.position.dto.request.PosDataDTO;
+import org.asansocketserver.domain.position.dto.request.StateDTO;
 import org.asansocketserver.domain.position.dto.response.PositionResponseDto;
 import org.asansocketserver.domain.position.entity.BeaconData;
 import org.asansocketserver.domain.position.entity.PositionData;
@@ -17,7 +20,7 @@ import org.asansocketserver.domain.position.mongorepository.PositionMongoReposit
 import org.asansocketserver.domain.position.repository.BeaconDataRepository;
 import org.asansocketserver.domain.position.repository.PositionStateRepository;
 import org.asansocketserver.domain.position.util.UniqueBSSIDMap;
-import org.asansocketserver.domain.ward.repository.CoordinateRepository;
+import org.asansocketserver.domain.ward.repository.SectorRepository;
 import org.asansocketserver.domain.watch.entity.Watch;
 import org.asansocketserver.domain.watch.repository.WatchRepository;
 import org.asansocketserver.global.error.exception.EntityNotFoundException;
@@ -46,13 +49,10 @@ import static org.asansocketserver.global.error.ErrorCode.WATCH_UUID_NOT_FOUND;
 public class PositionService {
     private final BeaconDataRepository beaconDataRepository;
     private final WatchRepository watchRepository;
-    private final CoordinateRepository coordinateRepository;
     private final PositionStateRepository positionStateRepository;
     private final PositionMongoRepository positionMongoRepository;
-    private final NotificationService notificationService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final RestTemplate restTemplate = new RestTemplate();
-    private final SimpMessageSendingOperations sendingOperations;
 
     public static String UPLOAD_DIR = "C:\\Users\\Gachon\\Desktop\\BecaonCsvAsan\\";
     // public static String UPLOAD_DIR = "/Users/parkjaeseok/Desktop/csv/";
@@ -70,8 +70,8 @@ public class PositionService {
     public void insertState(StateDTO stateDTO) {
 
         Watch watch = findByWatchOrThrow(stateDTO.watchId());
-        PositionState positionState = PositionState.createPositionState(watch.getId(), stateDTO.imageId(),
-                stateDTO.position(), System.currentTimeMillis(), stateDTO.endTime());
+        PositionState positionState = PositionState.createPositionState(watch.getId(), stateDTO.wardId(),
+                stateDTO.sectorName(), System.currentTimeMillis(), stateDTO.endTime());
         positionStateRepository.save(positionState);
 
         long delay = stateDTO.endTime() - System.currentTimeMillis();
@@ -94,11 +94,11 @@ public class PositionService {
             List<Map<String, String>> beaconDataListToMap = objectMapper.readValue(
                     reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {
                     });
-            String position = reading.getPosition();
-            data.putIfAbsent(position, new ArrayList<>());
+            String sectorName = reading.getSectorName();
+            data.putIfAbsent(sectorName, new ArrayList<>());
 
             for (Map<String, String> beaconData : beaconDataListToMap) {
-                data.get(position).add(beaconData);
+                data.get(sectorName).add(beaconData);
             }
         }
 
@@ -126,13 +126,13 @@ public class PositionService {
 
             // 데이터 작성
             for (BeaconData reading : beaconDataList) {
-                String position = reading.getPosition();
+                String sectorName = reading.getSectorName();
                 List<Map<String, String>> beaconDataListToMap = objectMapper.readValue(
                         reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {
                         });
 
                 // 한 행에 대한 데이터를 작성
-                writer.append(position);
+                writer.append(sectorName);
                 Map<String, String> bssidToRssiMap = new HashMap<>();
                 for (Map<String, String> beaconData : beaconDataListToMap) {
                     bssidToRssiMap.put(beaconData.get("bssid"), beaconData.get("rssi"));
@@ -172,21 +172,21 @@ public class PositionService {
         UniqueBSSIDMap baseMap = UniqueBSSIDMap.getInstance();
         UniqueBSSIDMap uniqueBSSIDMap = new UniqueBSSIDMap();
 
-        System.out.println(posData.beaconData() + " " + posData.position());
+        System.out.println(posData.beaconData() + " " + posData.sectorName());
         String prediction;
-        Long imageId = null;
+        Long wardId = null;
 
         synchronized (baseMap) {
             uniqueBSSIDMap.copyFrom(baseMap);
 
             try {
 
-                System.out.println(posData.beaconData() + " " + posData.position());
+                System.out.println(posData.beaconData() + " " + posData.sectorName());
                 // positionState이 null이 아닌 상태는 "비콘 수집" 상태임
                 if (!Objects.isNull(positionState)) {
                     System.out.println("positionState");
                     System.out.println("Check adding");
-                    addPosData(posData, positionState.getImageId(), positionState.getPosition());
+                    addPosData(posData, positionState.getWardId(), positionState.getSectorName());
 
                 } else {
                     for (BeaconDataDTO beaconData : posData.beaconData()) {
@@ -206,8 +206,8 @@ public class PositionService {
 
                 // prediction이 나타나지 않을 경우 execption 처리 재확인
                 // try {
-                // imageId = coordinateRepository.findByPositionAndIsWebTrue(prediction)
-                // .orElseThrow(() -> new NoSuchElementException("No coordinate found for the
+                // wardId = sectorRepository.findByPositionAndIsWebTrue(prediction)
+                // .orElseThrow(() -> new NoSuchElementException("No sector found for the
                 // given prediction"))
                 // .getImage()
                 // .getId();
@@ -216,7 +216,6 @@ public class PositionService {
                 // System.out.println("Image ID could not be retrieved: " + e.getMessage());
                 // // 예외 발생 시 추가적인 로직을 여기에 작성
                 // }
-                System.out.println("imageId = " + imageId);
                 System.out.println("After reset: " + baseMap.getBSSIDMap());
             }
         }
@@ -227,9 +226,7 @@ public class PositionService {
         watch.updateCurrentLocation(prediction);
         updatePositionData(watch.getId(), PositionData.of(prediction));
 
-        String color = "null";
-
-        return PositionResponseDto.of(watch.getId(), watch.getPatient().getName(), imageId, color, prediction);
+        return PositionResponseDto.of(watch.getId(), watch.getPatient().getName(), wardId, prediction);
     }
 
     private String sendUniqueBSSIDMapToFlask(UniqueBSSIDMap uniqueBSSIDMap) throws JSONException {
@@ -249,12 +246,12 @@ public class PositionService {
                 .orElse(null);
     }
 
-    public void deleteBeacon(String positionName) {
-        List<BeaconData> beaconsByPosition = beaconDataRepository.findAllByPosition(positionName);
+    public void deleteBeacon(String sectorName) {
+        List<BeaconData> beaconsByPosition = beaconDataRepository.findAllBySectorName(sectorName);
         beaconDataRepository.deleteAll(beaconsByPosition);
     }
 
-    private String addPosData(PosDataDTO posData, Long imageId, String position) {
+    private String addPosData(PosDataDTO posData, Long wardId, String sectorName) {
 
         if (posData.beaconData().isEmpty()) {
 
@@ -266,8 +263,8 @@ public class PositionService {
         }
 
         BeaconData beaconDataEntity = new BeaconData();
-        beaconDataEntity.setImageId(imageId);
-        beaconDataEntity.setPosition(position);
+        beaconDataEntity.setWardId(wardId);
+        beaconDataEntity.setSectorName(sectorName);
         String beaconDataJson = convertBeaconDataDtoToJson(posData.beaconData());
         beaconDataEntity.setBeaconData(beaconDataJson);
         beaconDataRepository.save(beaconDataEntity);
@@ -275,7 +272,7 @@ public class PositionService {
     }
 
     // 받은 PosData에서 json({uuid, rssi})을 (DB)에 저장.
-    private String convertBeaconDataDtoToJson(List beaconDataDTO) {
+    private String convertBeaconDataDtoToJson(List<BeaconDataDTO> beaconDataDTO) {
         // ObjectMapper를 사용하여 Beacon
         // DataDTO를 JSON 문자열로 변환
         ObjectMapper mapper = new ObjectMapper();
@@ -292,8 +289,8 @@ public class PositionService {
                 .orElseThrow(() -> new EntityNotFoundException(WATCH_UUID_NOT_FOUND));
     }
 
-    private void updatePositionData(Long watchId, PositionData position) {
-        positionMongoRepository.updatePosition(watchId, position);
+    private void updatePositionData(Long watchId, PositionData sectorName) {
+        positionMongoRepository.updatePosition(watchId, sectorName);
     }
 
 }

@@ -1,9 +1,6 @@
 package org.asansocketserver.domain.position.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,9 +11,9 @@ public class BeaconData {
     @Id
     @GeneratedValue
     private int id;
-    private Long imageId;
-    private Long coordinateId;
-    private String position;
+    private Long wardId;
+    private Long sectorId;
+    private String sectorName;
 
     @Column(columnDefinition = "json")
     private String beaconData;

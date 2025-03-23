@@ -18,8 +18,9 @@ public class Ward {
     @GeneratedValue
     private Long id;
     private String name;
-    private String imageUrl;
+    private String image;
     @OneToMany(mappedBy = "ward" , orphanRemoval = true)
+    @Builder.Default
     private List<Sector> sectors = new ArrayList<>();
 
 }

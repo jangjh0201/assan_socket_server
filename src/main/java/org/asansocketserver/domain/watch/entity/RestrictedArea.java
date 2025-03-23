@@ -1,5 +1,6 @@
 package org.asansocketserver.domain.watch.entity;
 
+import org.asansocketserver.domain.patient.entity.Patient;
 import org.asansocketserver.domain.ward.entity.Sector;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
-@Table(name = "watch_coordinate_prohibition")
+@Table(name = "restricted_area")
 @Entity
 public class RestrictedArea {
 
@@ -19,19 +20,19 @@ public class RestrictedArea {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "watch_id")
+    @JoinColumn(name = "patient_id")
     @JsonIgnore
-    private Watch watch;
+    private Patient patient;
 
     @ManyToOne
-    @JoinColumn(name = "coordinate_id", nullable = false)
-    private Sector coordinate;
+    @JoinColumn(name = "sector_id", nullable = false)
+    private Sector sector;
 
     // 생성 메서드
-    public static RestrictedArea createProhibition(Watch watch, Sector coordinate) {
+    public static RestrictedArea create(Patient patient, Sector sector) {
         return RestrictedArea.builder()
-                .watch(watch)
-                .coordinate(coordinate)
+                .patient(patient)
+                .sector(sector)
                 .build();
     }
 }

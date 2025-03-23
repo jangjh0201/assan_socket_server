@@ -9,19 +9,17 @@ import java.time.LocalDateTime;
 public record PositionResponseDto(
         Long watchId,
         String watchName,
-        LocalDateTime currentTime,
-        Long imageId,
-        String color,
-        String position
-) {
-    public static PositionResponseDto of(Long watchId,String watchName,Long imageId,String color,String date) {
+        Long wardId,
+        String sectorName,
+        LocalDateTime currentTime
+        ) {
+    public static PositionResponseDto of(Long watchId, String watchName, Long wardId, String sectorName) {
         return PositionResponseDto.builder()
                 .watchId(watchId)
                 .watchName(watchName)
+                .wardId(wardId)
+                .sectorName(sectorName)
                 .currentTime(LocalDateTime.now())
-                .imageId(imageId)
-                .color(color)
-                .position(date)
                 .build();
     }
 }

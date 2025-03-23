@@ -14,7 +14,7 @@ import org.asansocketserver.domain.sensor.mongorepository.barometer.SensorBarome
 import org.asansocketserver.domain.sensor.mongorepository.heartrate.SensorHeartRateRepository;
 import org.asansocketserver.domain.sensor.mongorepository.light.SensorLightRepository;
 import org.asansocketserver.domain.ward.entity.Sector;
-import org.asansocketserver.domain.ward.repository.CoordinateRepository;
+import org.asansocketserver.domain.ward.repository.SectorRepository;
 import org.asansocketserver.domain.watch.entity.Watch;
 import org.asansocketserver.domain.watch.repository.WatchRepository;
 import org.asansocketserver.global.error.exception.EntityNotFoundException;
@@ -44,7 +44,6 @@ public class SensorService {
     private final WatchRepository watchRepository;
     private final SimpMessageSendingOperations sendingOperations;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final CoordinateRepository coordinateRepository;
     private final NotificationService notificationService;
 
     private Watch findByWatchOrThrow(Long id) {
@@ -93,7 +92,7 @@ public class SensorService {
         HeartRate heartRate = createHeartRate(heartRateRequestDto);
 
         // 위치 측정
-        String position = watch.get().getCurrentLocation();
+        String currentLocation = watch.get().getCurrentLocation();
 
         createHeartRateAndSave(watchId, heartRateRequestDto);
 
@@ -103,12 +102,12 @@ public class SensorService {
 
             // WebSocket 고심박 알림 to 프론트 구현 필요
 
-            notificationService.createAndSaveNotification(watch.get(), position, "고심박");
+            notificationService.createAndSaveNotification(watch.get(), currentLocation, "고심박");
         } else if (watch.get().getPatient().getMinHeartRate() > heartRate.getValue()) {
 
             // WebSocket 저심박 알림 to 프론트 구현 필요
-            
-            notificationService.createAndSaveNotification(watch.get(), position, "저심박");
+
+            notificationService.createAndSaveNotification(watch.get(), currentLocation, "저심박");
         }
 
         Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);

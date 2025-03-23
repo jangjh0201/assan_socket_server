@@ -21,7 +21,7 @@ public class Notification {
     private Long patientId;
     private String patientName;
     private String patientRoom;
-    private String position;
+    private String currentSectorName;
     private LocalDateTime timestamp;
 
     public static Notification createNotification(NotificationRequestDTO notificationRequestDto) {
@@ -30,7 +30,7 @@ public class Notification {
                 .patientId(notificationRequestDto.patientId())
                 .patientName(notificationRequestDto.patientName())
                 .patientRoom(notificationRequestDto.patientRoomName())
-                .position(notificationRequestDto.position())
+                .currentSectorName(notificationRequestDto.currentSectorName())
                 .timestamp(notificationRequestDto.timeStamp())
                 .build();
     }

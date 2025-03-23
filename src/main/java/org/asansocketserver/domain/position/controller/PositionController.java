@@ -2,7 +2,7 @@ package org.asansocketserver.domain.position.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
-import org.asansocketserver.domain.position.dto.request.PositionNameDTO;
+import org.asansocketserver.domain.position.dto.request.SectorNameDTO;
 import org.asansocketserver.domain.position.dto.request.StateDTO;
 import org.asansocketserver.domain.position.service.PositionService;
 import org.asansocketserver.global.common.SuccessResponse;
@@ -33,8 +33,8 @@ public class PositionController {
 
     @Operation(summary = "비콘 데이터 삭제", description = "특정 위치의 모든 비콘 데이터를 삭제합니다.")
     @DeleteMapping("/deleteBeacon")
-    public ResponseEntity<SuccessResponse<?>> deleteBeacon(@RequestBody PositionNameDTO positionNameDTO) {
-        positionService.deleteBeacon(positionNameDTO.getPosition());
+    public ResponseEntity<SuccessResponse<?>> deleteBeacon(@RequestBody SectorNameDTO sectorNameDTO) {
+        positionService.deleteBeacon(sectorNameDTO.getSectorName());
         return SuccessResponse.ok("success");
     }
 

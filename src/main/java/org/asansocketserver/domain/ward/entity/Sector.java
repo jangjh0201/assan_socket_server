@@ -13,18 +13,18 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
-@Table(name = "coordinate")
+@Table(name = "sector")
 @Entity
 public class Sector {
     @Id
     @GeneratedValue
     private Long id;
 
+    private String name;
+
     @ManyToOne
     @JoinColumn(name = "ward")
     private Ward ward;
-
-    private String position;
 
     @Column(precision = 10, scale = 4)
     private BigDecimal startX;
@@ -42,7 +42,7 @@ public class Sector {
     private SectorType sectorType;
 
     // OneToMany relationship with cascade type ALL
-    @OneToMany(mappedBy = "coordinate", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "sector", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RestrictedArea> restrictedAreas;
 
     public void updateSectorType(SectorType sectorType) {

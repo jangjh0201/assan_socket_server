@@ -7,24 +7,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
 @Builder(access = AccessLevel.PRIVATE)
 public record WatchResponseDto(
         Long watchId,
         String device,
-
-        @JsonProperty("name")
-        String patientName,
-        
-        @JsonProperty("host")
-        String patientWard
-) {
+        @JsonProperty("name") String patientName,
+        @JsonProperty("host") String patientWard) {
     public static WatchResponseDto of(Watch watch) {
         return WatchResponseDto.builder()
                 .watchId(watch.getId())
                 .device(watch.getDevice())
-                .patientName(watch.getPatient().getName())
-                .patientWard(watch.getPatient().getWard())
+                // .patientName(watch.getPatient().getName())
+                // .patientWard(watch.getPatient().getWard())
                 .build();
     }
 

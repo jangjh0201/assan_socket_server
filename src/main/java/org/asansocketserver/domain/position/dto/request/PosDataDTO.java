@@ -5,11 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public record PosDataDTO(
-        String watchId,
-        Long imageId,
-        String position,
-        String password,
-        @JsonProperty("beacon_data")
-        List<BeaconDataDTO> beaconData
-) {
+                String watchId,
+                @JsonProperty("imageId") Long wardId,
+                @JsonProperty("position") String sectorName,
+                @JsonProperty("beacon_data") List<BeaconDataDTO> beaconData) {
 }

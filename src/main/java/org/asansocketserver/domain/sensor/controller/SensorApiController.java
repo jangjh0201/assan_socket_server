@@ -1,6 +1,8 @@
 package org.asansocketserver.domain.sensor.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.asansocketserver.domain.sensor.dto.request.*;
 import org.asansocketserver.domain.sensor.service.SensorService;
 import org.asansocketserver.global.common.SuccessResponse;
@@ -10,10 +12,10 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 
+@Slf4j
 @Tag(name = "Sensor API", description = "센서 데이터 처리 API")
 @RequiredArgsConstructor
 @RestController

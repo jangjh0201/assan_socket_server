@@ -1,5 +1,7 @@
 package org.asansocketserver.domain.watch.entity;
 
+import org.asansocketserver.domain.patient.entity.Patient;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,17 +19,17 @@ public class NoContact {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "watch_id")
+    @JoinColumn(name = "patient_id")
     @JsonIgnore
-    private Watch watch;
+    private Patient patient;
 
     @ManyToOne
-    @JoinColumn(name = "no_contact_watch_id")
-    private Watch noContact;
+    @JoinColumn(name = "no_contact_id")
+    private Patient noContact;
 
-    public static NoContact createNoContact(Watch watch, Watch noContact) {
+    public static NoContact createNoContact(Patient watch, Patient noContact) {
         return NoContact.builder()
-                .watch(watch)
+                .patient(watch)
                 .noContact(noContact)
                 .build();
     }

@@ -6,14 +6,17 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+import org.asansocketserver.domain.ward.enums.SectorType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 @Getter
 @Setter
-public class CoordinateDTO {
-    private Long imageId;
-    private Long coordinateId;
-    private String latitude;
-    private String longitude;
-    private String position;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SectorDTO {
+    private Long wardId;
+    private Long sectorId;
+    private String sectorName;
     @Column(precision = 10, scale = 4)
     private BigDecimal startX;
     @Column(precision = 10, scale = 4)
@@ -22,5 +25,5 @@ public class CoordinateDTO {
     private BigDecimal endX;
     @Column(precision = 10, scale = 4)
     private BigDecimal endY;
-    private String setting;
+    private SectorType sectorType;
 }

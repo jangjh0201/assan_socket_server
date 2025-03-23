@@ -6,7 +6,6 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 public class ResultDataDTO implements Comparable<ResultDataDTO> {
@@ -14,20 +13,18 @@ public class ResultDataDTO implements Comparable<ResultDataDTO> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String android_id;
-    private String position;
+    private String sectorName;
     private int count;
     private double avg;
     private double ratio;
 
-
-    public ResultDataDTO(int id ,String position, int count, double avg, double ratio) {
+    public ResultDataDTO(int id, String sectorName, int count, double avg, double ratio) {
         this.id = id;
-        this.position = position;
+        this.sectorName = sectorName;
         this.count = count;
         this.avg = avg;
         this.ratio = ratio;
     }
-
 
     @Override
     public int compareTo(ResultDataDTO other) {
@@ -37,9 +34,9 @@ public class ResultDataDTO implements Comparable<ResultDataDTO> {
 
     @Override
     public String toString() {
-        return "ResultDataDTO{" +"android_id" + android_id +
+        return "ResultDataDTO{" + "android_id" + android_id +
                 "id=" + id +
-                ", position='" + position + '\'' +
+                ", sectorName='" + sectorName + '\'' +
                 ", count=" + count +
                 ", avg=" + avg +
                 ", ratio=" + ratio +

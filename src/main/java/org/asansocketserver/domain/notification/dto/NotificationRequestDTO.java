@@ -7,10 +7,11 @@ public record NotificationRequestDTO(
         Long patientId,
         String patientName,
         String patientRoomName,
-        String position,
+        String currentSectorName,
         LocalDateTime timeStamp) {
     public static NotificationRequestDTO of(String riskName, Long patientId, String patientName, String patientRoomName,
-            String position, LocalDateTime timeStamp) {
-        return new NotificationRequestDTO(riskName, patientId, patientName, patientRoomName, position, timeStamp);
+            String currentSectorName, LocalDateTime timeStamp) {
+        return new NotificationRequestDTO(riskName, patientId, patientName, patientRoomName, currentSectorName,
+                timeStamp);
     }
 }

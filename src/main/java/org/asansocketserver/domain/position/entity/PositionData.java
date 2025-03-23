@@ -7,12 +7,12 @@ import lombok.Getter;
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
 public class PositionData {
-    private String position;
+    private String sectorName;
     private String timeStamp;
 
-    public static PositionData of(String position) {
+    public static PositionData of(String sectorName) {
         return PositionData.builder()
-                .position(position)
+                .sectorName(sectorName)
                 .timeStamp(String.valueOf(System.currentTimeMillis() / 1000))
                 .build();
     }

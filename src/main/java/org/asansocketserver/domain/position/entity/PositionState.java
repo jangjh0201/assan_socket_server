@@ -13,18 +13,19 @@ import org.springframework.data.redis.core.index.Indexed;
 public class PositionState {
     @Id
     private Long id;
-    private Long imageId;
-    private Long coordinateId;
+    private Long wardId;
+    private Long sectorId;
     @Indexed
-    private String position;
+    private String sectorName;
     private Long startTime;
     private Long endTime;
 
-    public static PositionState createPositionState(Long watchId, Long imageId, String position,Long startTime,Long endTime) {
+    public static PositionState createPositionState(Long watchId, Long wardId, String sectorName, Long startTime,
+            Long endTime) {
         return PositionState.builder()
                 .id(watchId)
-                .imageId(imageId)
-                .position(position)
+                .wardId(wardId)
+                .sectorName(sectorName)
                 .startTime(startTime)
                 .endTime(endTime)
                 .build();

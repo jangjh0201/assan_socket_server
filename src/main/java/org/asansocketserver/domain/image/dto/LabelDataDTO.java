@@ -1,4 +1,4 @@
-package org.asansocketserver.domain.ward.dto;
+package org.asansocketserver.domain.image.dto;
 
 
 import lombok.Getter;
@@ -14,7 +14,6 @@ public class LabelDataDTO {
     private BigDecimal startY;
     private BigDecimal endX;
     private BigDecimal endY;
-
 
 
 }
