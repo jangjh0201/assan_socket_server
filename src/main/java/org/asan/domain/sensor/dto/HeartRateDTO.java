@@ -1,0 +1,10 @@
+package org.asan.domain.sensor.dto;
+
+import lombok.AccessLevel;
+import lombok.Builder;
+
+@Builder(access = AccessLevel.PRIVATE)
+public record HeartRateDTO(
+                Integer value,
+                Long timestamp) {
+}
