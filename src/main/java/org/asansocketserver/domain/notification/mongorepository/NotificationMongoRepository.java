@@ -13,9 +13,6 @@ import java.util.Optional;
 @Repository
 public interface NotificationMongoRepository extends MongoRepository<Notification, String> {
 
-    Optional<Notification> findByWatchIdAndAlarmTypeAndTimestampBetween(
-            Long watchId, String alarmType, LocalDateTime start, LocalDateTime end);
-
     @Query(value = "{'timestamp': { $gte: ?0, $lte: ?1 }}", count = true)
     long countByTimestamp(LocalDateTime startOfDay, LocalDateTime endOfDay);
 

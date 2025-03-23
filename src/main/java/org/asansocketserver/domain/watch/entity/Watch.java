@@ -35,6 +35,7 @@ public class Watch {
         return Watch.builder()
                 .uuid(uuid)
                 .device(device)
+                .patient(null)
                 .build();
     }
 

@@ -11,6 +11,8 @@ public interface WatchRepository extends JpaRepository<Watch, Long> {
 
     boolean existsByUuid(String uuid);
 
+    boolean existsById(Long id);
+
     void delete(Watch watch);
 
 }
