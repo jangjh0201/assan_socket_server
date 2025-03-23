@@ -4,20 +4,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.asansocketserver.domain.position.dto.PositionDTO;
-import org.asansocketserver.domain.position.repository.BeaconDataRepository;
+import org.asansocketserver.domain.sector.dto.SectorDTO;
+import org.asansocketserver.domain.sector.entity.Sector;
+import org.asansocketserver.domain.sector.repository.SectorRepository;
 import org.asansocketserver.domain.ward.dto.*;
-import org.asansocketserver.domain.ward.entity.Sector;
 import org.asansocketserver.domain.ward.entity.Ward;
-import org.asansocketserver.domain.ward.enums.SectorType;
-import org.asansocketserver.domain.ward.repository.SectorRepository;
 import org.asansocketserver.domain.ward.repository.WardRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -26,7 +19,6 @@ import java.util.*;
 public class WardService {
     private final SectorRepository sectorRepository;
     private final WardRepository wardRepository;
-    private final BeaconDataRepository beaconDataRepository;
 
     public static String UPLOAD_DIR = "C:\\Users\\Gachon\\uploads\\images\\";
     // public static String UPLOAD_DIR = "/app/uploads/images/";
@@ -41,43 +33,19 @@ public class WardService {
 
         List<Long> wardIdDTOs = new ArrayList<>();
         List<String> wardNameDTOs = new ArrayList<>();
-        // List<Image> images = null;
-
-        // if (!isWeb) {
-        // images = wardRepository.findAllByIsWebFalse();
-        // for (Image ward : images) {
-        // wardIdDTOs.add(ward.getId());
-        // wardNameDTOs.add(ward.getImageName());
-        // }
-        // } else {
-        // images = wardRepository.findAllByIsWebTrue();
-        // for (Image ward : images) {
-        // wardIdDTOs.add(ward.getId());
-        // wardNameDTOs.add(ward.getImageName());
-        // }
-        // }
         for (Ward ward : wardRepository.findAll()) {
             wardIdDTOs.add(ward.getId());
             wardNameDTOs.add(ward.getName());
         }
 
         WardsDTO wardsDTO = new WardsDTO();
-        wardsDTO.setImageIds(wardIdDTOs);
-        wardsDTO.setImageNames(wardNameDTOs);
+        wardsDTO.setWardIds(wardIdDTOs);
+        wardsDTO.setWardNames(wardNameDTOs);
         return wardsDTO;
     }
 
     public List<SectorDTO> getSectors(Long id) {
         Optional<Ward> ward = wardRepository.findById(id);
-
-        // if (ward.isPresent()) {
-        // if (isWeb) {
-        // sectors = sectorRepository.findAllByImageAndIsWebTrue(ward.get());
-        // } else {
-        // sectors = sectorRepository.findAllByImageAndIsWebFalse(ward.get());
-        // }
-        // }
-
         List<Sector> sectors = sectorRepository.findAllByWard(ward.get());
 
         List<SectorDTO> sectorDTOs = new ArrayList<>();
@@ -103,13 +71,6 @@ public class WardService {
     @Transactional
     public List<PositionDTO> getSectorNames() {
         List<Sector> sectors = sectorRepository.findAll();
-
-        // if (isWeb) {
-        // sectors = sectorRepository.findAllByIsWebTrue();
-        // } else {
-        // sectors = sectorRepository.findAllByIsWebFalse();
-        // }
-
         List<PositionDTO> positionList = new ArrayList<>();
 
         if (sectors.isEmpty()) {
@@ -125,34 +86,5 @@ public class WardService {
             }
         }
         return positionList;
-    }
-
-    public List<WardAndSectorDTO> getWardAndSectorNameList() {
-        List<WardIDAndNameAndSectorDTO> wardIDAndNameAndSectorDTOs = wardRepository.findWardsWithSectors();
-
-        Map<Long, WardAndSectorDTO> wardMap = new HashMap<>();
-        List<SectorIDAndNameDTO> positionList = new ArrayList<>();
-
-        WardAndSectorDTO wardAndSectors;
-
-        for (WardIDAndNameAndSectorDTO dto : wardIDAndNameAndSectorDTOs) {
-            Long wardId = dto.wardId();
-
-            if (wardMap.get(wardId) == null) {
-                wardAndSectors = WardAndSectorDTO.of(dto.wardId(), dto.wardName(), new ArrayList<>());
-                wardMap.put(dto.wardId(), wardAndSectors);
-            }
-
-            SectorIDAndNameDTO sectorDTO = SectorIDAndNameDTO.of(dto.sectorId(),
-                    dto.sectorName());
-
-            positionList = wardMap.get(dto.wardId()).sectorIDAndPositionDTOs();
-            positionList.add(sectorDTO);
-            wardAndSectors = WardAndSectorDTO.of(dto.wardId(), dto.wardName(), positionList);
-            wardMap.put(dto.wardId(), wardAndSectors);
-
-        }
-
-        return new ArrayList<>(wardMap.values());
     }
 }

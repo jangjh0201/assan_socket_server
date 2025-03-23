@@ -2,22 +2,16 @@ package org.asansocketserver.domain.ward.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 
 import org.asansocketserver.domain.position.dto.PositionDTO;
+import org.asansocketserver.domain.sector.dto.SectorDTO;
 import org.asansocketserver.domain.ward.dto.*;
-import org.asansocketserver.domain.ward.enums.SectorType;
 import org.asansocketserver.domain.ward.service.WardService;
 import org.asansocketserver.global.common.SuccessResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RequiredArgsConstructor

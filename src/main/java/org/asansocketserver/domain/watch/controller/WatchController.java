@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequiredArgsConstructor
 @RequestMapping("/api/watch")
 @RestController
-public class WatchApiController {
+public class WatchController {
     private final WatchService watchService;
 
     @Operation(summary = "모든 스마트워치 조회", description = "등록된 모든 스마트워치 목록을 조회합니다.")

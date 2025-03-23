@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.asansocketserver.domain.notification.service.NotificationService;
+import org.asansocketserver.domain.sector.entity.Sector;
+import org.asansocketserver.domain.sector.repository.SectorRepository;
 import org.asansocketserver.domain.sensor.dto.request.*;
 import org.asansocketserver.domain.sensor.dto.response.*;
 import org.asansocketserver.domain.sensor.entity.*;
@@ -13,8 +15,6 @@ import org.asansocketserver.domain.sensor.mongorepository.accelerometer.SensorAc
 import org.asansocketserver.domain.sensor.mongorepository.barometer.SensorBarometerRepository;
 import org.asansocketserver.domain.sensor.mongorepository.heartrate.SensorHeartRateRepository;
 import org.asansocketserver.domain.sensor.mongorepository.light.SensorLightRepository;
-import org.asansocketserver.domain.ward.entity.Sector;
-import org.asansocketserver.domain.ward.repository.SectorRepository;
 import org.asansocketserver.domain.watch.entity.Watch;
 import org.asansocketserver.domain.watch.repository.WatchRepository;
 import org.asansocketserver.global.error.exception.EntityNotFoundException;

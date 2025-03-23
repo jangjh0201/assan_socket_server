@@ -1,6 +1,4 @@
-package org.asansocketserver.domain.watch.entity;
-
-import org.asansocketserver.domain.patient.entity.Patient;
+package org.asansocketserver.domain.patient.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

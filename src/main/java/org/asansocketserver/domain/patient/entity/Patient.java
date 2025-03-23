@@ -2,8 +2,7 @@ package org.asansocketserver.domain.patient.entity;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.asansocketserver.domain.watch.entity.NoContact;
-import org.asansocketserver.domain.watch.entity.RestrictedArea;
+
 import org.asansocketserver.domain.watch.entity.Watch;
 import org.asansocketserver.domain.watch.enums.Gender;
 import org.asansocketserver.domain.watch.enums.RiskType;

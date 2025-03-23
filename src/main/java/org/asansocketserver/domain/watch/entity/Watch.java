@@ -23,7 +23,6 @@ public class Watch {
     private String currentLocation;
 
     @OneToOne
-    @JoinColumn(name = "patient_id")
     private Patient patient;
 
     public void updateCurrentLocation(String currentLocation) {

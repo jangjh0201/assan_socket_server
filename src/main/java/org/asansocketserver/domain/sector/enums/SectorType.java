@@ -1,4 +1,4 @@
-package org.asansocketserver.domain.ward.enums;
+package org.asansocketserver.domain.sector.enums;
 
 public enum SectorType {
     MALE, FEMALE, RESTRICTED

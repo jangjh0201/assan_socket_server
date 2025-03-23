@@ -1,10 +1,11 @@
-package org.asansocketserver.domain.ward.entity;
+package org.asansocketserver.domain.sector.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 
-import org.asansocketserver.domain.ward.enums.SectorType;
-import org.asansocketserver.domain.watch.entity.RestrictedArea;
+import org.asansocketserver.domain.patient.entity.RestrictedArea;
+import org.asansocketserver.domain.sector.enums.SectorType;
+import org.asansocketserver.domain.ward.entity.Ward;
 
 import java.math.BigDecimal;
 import java.util.List;

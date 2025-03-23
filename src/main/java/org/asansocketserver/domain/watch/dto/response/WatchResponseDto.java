@@ -17,8 +17,8 @@ public record WatchResponseDto(
         return WatchResponseDto.builder()
                 .watchId(watch.getId())
                 .device(watch.getDevice())
-                // .patientName(watch.getPatient().getName())
-                // .patientWard(watch.getPatient().getWard())
+                .patientName(watch.getPatient() == null ? "지정되지 않음" : watch.getPatient().getName())
+                .patientWard(watch.getPatient() == null ? "지정되지 않음" : watch.getPatient().getWard())
                 .build();
     }
 

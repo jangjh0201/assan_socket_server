@@ -7,20 +7,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.asansocketserver.domain.notification.service.NotificationService;
 import org.asansocketserver.domain.position.dto.request.BeaconCountsDTO;
 import org.asansocketserver.domain.position.dto.request.BeaconDataDTO;
 import org.asansocketserver.domain.position.dto.request.PosDataDTO;
 import org.asansocketserver.domain.position.dto.request.StateDTO;
 import org.asansocketserver.domain.position.dto.response.PositionResponseDto;
-import org.asansocketserver.domain.position.entity.BeaconData;
+import org.asansocketserver.domain.position.entity.Beacon;
 import org.asansocketserver.domain.position.entity.PositionData;
 import org.asansocketserver.domain.position.entity.PositionState;
 import org.asansocketserver.domain.position.mongorepository.PositionMongoRepository;
-import org.asansocketserver.domain.position.repository.BeaconDataRepository;
+import org.asansocketserver.domain.position.repository.BeaconRepository;
 import org.asansocketserver.domain.position.repository.PositionStateRepository;
 import org.asansocketserver.domain.position.util.UniqueBSSIDMap;
-import org.asansocketserver.domain.ward.repository.SectorRepository;
 import org.asansocketserver.domain.watch.entity.Watch;
 import org.asansocketserver.domain.watch.repository.WatchRepository;
 import org.asansocketserver.global.error.exception.EntityNotFoundException;
@@ -28,7 +26,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -47,7 +44,7 @@ import static org.asansocketserver.global.error.ErrorCode.WATCH_UUID_NOT_FOUND;
 @Transactional
 @Service
 public class PositionService {
-    private final BeaconDataRepository beaconDataRepository;
+    private final BeaconRepository beaconRepository;
     private final WatchRepository watchRepository;
     private final PositionStateRepository positionStateRepository;
     private final PositionMongoRepository positionMongoRepository;
@@ -62,7 +59,7 @@ public class PositionService {
     private String flaskUrl;
 
     public List<BeaconCountsDTO> countBeacon() {
-        return beaconDataRepository.findAllBeaconCount().stream()
+        return beaconRepository.findAllBeaconCount().stream()
                 .map(result -> new BeaconCountsDTO((String) result[0], ((Number) result[1]).intValue()))
                 .collect(Collectors.toList());
     }
@@ -83,21 +80,21 @@ public class PositionService {
     }
 
     public void createCsv() throws JsonProcessingException {
-        List<BeaconData> beaconDataList = beaconDataRepository.findAll();
+        List<Beacon> beacons = beaconRepository.findAll();
 
         // 데이터를 저장할 Map
         Map<String, List<Map<String, String>>> data = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
 
         // 모든 비콘 데이터를 파싱하여 Map에 저장
-        for (BeaconData reading : beaconDataList) {
-            List<Map<String, String>> beaconDataListToMap = objectMapper.readValue(
+        for (Beacon reading : beacons) {
+            List<Map<String, String>> beaconListToMap = objectMapper.readValue(
                     reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {
                     });
             String sectorName = reading.getSectorName();
             data.putIfAbsent(sectorName, new ArrayList<>());
 
-            for (Map<String, String> beaconData : beaconDataListToMap) {
+            for (Map<String, String> beaconData : beaconListToMap) {
                 data.get(sectorName).add(beaconData);
             }
         }
@@ -125,17 +122,17 @@ public class PositionService {
             writer.append("\n");
 
             // 데이터 작성
-            for (BeaconData reading : beaconDataList) {
+            for (Beacon reading : beacons) {
                 String sectorName = reading.getSectorName();
-                List<Map<String, String>> beaconDataListToMap = objectMapper.readValue(
+                List<Map<String, String>> beaconListToMap = objectMapper.readValue(
                         reading.getBeaconData(), new TypeReference<List<Map<String, String>>>() {
                         });
 
                 // 한 행에 대한 데이터를 작성
                 writer.append(sectorName);
                 Map<String, String> bssidToRssiMap = new HashMap<>();
-                for (Map<String, String> beaconData : beaconDataListToMap) {
-                    bssidToRssiMap.put(beaconData.get("bssid"), beaconData.get("rssi"));
+                for (Map<String, String> beacon : beaconListToMap) {
+                    bssidToRssiMap.put(beacon.get("bssid"), beacon.get("rssi"));
                 }
                 for (String bssid : uniqueBssids) {
                     writer.append(",");
@@ -200,7 +197,7 @@ public class PositionService {
 
                 prediction = "null";
                 if (!baseMap.getBSSIDMap().isEmpty()) {
-                    prediction = sendUniqueBSSIDMapToFlask(uniqueBSSIDMap);
+                    prediction = sendBeaconDataToFlask(uniqueBSSIDMap);
                 }
                 baseMap.resetBSSIDMapValues();
 
@@ -229,7 +226,7 @@ public class PositionService {
         return PositionResponseDto.of(watch.getId(), watch.getPatient().getName(), wardId, prediction);
     }
 
-    private String sendUniqueBSSIDMapToFlask(UniqueBSSIDMap uniqueBSSIDMap) throws JSONException {
+    private String sendBeaconDataToFlask(UniqueBSSIDMap uniqueBSSIDMap) throws JSONException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -247,8 +244,8 @@ public class PositionService {
     }
 
     public void deleteBeacon(String sectorName) {
-        List<BeaconData> beaconsByPosition = beaconDataRepository.findAllBySectorName(sectorName);
-        beaconDataRepository.deleteAll(beaconsByPosition);
+        List<Beacon> beaconsByPosition = beaconRepository.findAllBySectorName(sectorName);
+        beaconRepository.deleteAll(beaconsByPosition);
     }
 
     private String addPosData(PosDataDTO posData, Long wardId, String sectorName) {
@@ -262,12 +259,12 @@ public class PositionService {
             System.out.println("scaning beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
         }
 
-        BeaconData beaconDataEntity = new BeaconData();
-        beaconDataEntity.setWardId(wardId);
-        beaconDataEntity.setSectorName(sectorName);
+        Beacon beacon = new Beacon();
+        beacon.setWardId(wardId);
+        beacon.setSectorName(sectorName);
         String beaconDataJson = convertBeaconDataDtoToJson(posData.beaconData());
-        beaconDataEntity.setBeaconData(beaconDataJson);
-        beaconDataRepository.save(beaconDataEntity);
+        beacon.setBeaconData(beaconDataJson);
+        beaconRepository.save(beacon);
         return null;
     }
 

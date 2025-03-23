@@ -7,7 +7,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class BeaconData {
+public class Beacon {
     @Id
     @GeneratedValue
     private int id;

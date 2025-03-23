@@ -1,7 +1,7 @@
 package org.asansocketserver.domain.watch.repository;
 
+import org.asansocketserver.domain.patient.entity.NoContact;
 import org.asansocketserver.domain.patient.entity.Patient;
-import org.asansocketserver.domain.watch.entity.NoContact;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

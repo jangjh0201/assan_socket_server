@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.Map;
+
 @Slf4j
 @Tag(name = "Position WebSocket API", description = "WebSocket을 이용한 위치 데이터 처리 API")
 @RequiredArgsConstructor
@@ -30,7 +31,6 @@ public class PositionMessageController {
     public void sendAccelerometer(
             @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
             @Payload final PosDataDTO request) throws Exception {
-                log.info("request: {}", request);
         String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
 
         PositionResponseDto responseDto = positionService.receiveData(request, destination);

@@ -1,6 +1,6 @@
-package org.asansocketserver.domain.ward.repository;
+package org.asansocketserver.domain.sector.repository;
 
-import org.asansocketserver.domain.ward.entity.Sector;
+import org.asansocketserver.domain.sector.entity.Sector;
 import org.asansocketserver.domain.ward.entity.Ward;
 import org.springframework.data.jpa.repository.JpaRepository;
 

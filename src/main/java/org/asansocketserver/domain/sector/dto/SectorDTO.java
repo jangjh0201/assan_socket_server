@@ -1,4 +1,4 @@
-package org.asansocketserver.domain.ward.dto;
+package org.asansocketserver.domain.sector.dto;
 
 import jakarta.persistence.Column;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-import org.asansocketserver.domain.ward.enums.SectorType;
+import org.asansocketserver.domain.sector.enums.SectorType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
