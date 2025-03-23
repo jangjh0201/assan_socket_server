@@ -14,26 +14,20 @@ import org.asansocketserver.domain.watch.repository.WatchRepository;
 import org.asansocketserver.socket.error.SocketException;
 import org.asansocketserver.socket.error.SocketNotFoundException;
 import org.asansocketserver.socket.error.SocketUnauthorizedException;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.asansocketserver.socket.error.SocketErrorCode.*;
@@ -62,15 +56,20 @@ public class StompInterceptor implements ChannelInterceptor {
 
         if (StompCommand.CONNECT.equals(command)) {
             Long watchId = getWatchByAuthorizationHeader(accessor);
-            log.info(watchId.toString());
             setWatchIdFromStompHeader(accessor, watchId);
             Optional<Watch> watch = watchRepository.findById(watchId);
-            if (!watchId.equals(monitoringId)) {
-                createWatchLiveAndSave(watchId);
-                createSensorDataAndSave(watchId, watch.get().getPatient().getName());
-                createPositionAndSave(watchId);
+            // 환자 할당이 되어있지 않은 워치는 모니터링 불가
+            if (watch.get().getPatient() == null) {
+                log.warn("[UNASSIGNED]:: watchId : {}", watchId);
+                throw new SocketUnauthorizedException(WATCH_NOT_ASSIGNED);
+            } else {
+                if (!watchId.equals(monitoringId)) {
+                    createWatchLiveAndSave(watchId);
+                    createSensorDataAndSave(watchId, watch.get().getPatient().getName());
+                    createPositionAndSave(watchId);
+                }
             }
-            log.info("[CONNECT]:: watchId : " + watchId);
+            log.info("[CONNECT]:: watchId : {}", watchId);
             sensorScheduler.broadcastWatchList();
 
         } else if (StompCommand.DISCONNECT.equals(command)) {
@@ -94,7 +93,7 @@ public class StompInterceptor implements ChannelInterceptor {
                 sensorScheduler.sendDisconnectWatch(watchId);
             }
             sensorScheduler.broadcastWatchList();
-            log.info("DISCONNECTED watchId : {}", watchId);
+            log.info("[DISCONNECTED]:: watchId : {}", watchId);
         }
 
         return message;
