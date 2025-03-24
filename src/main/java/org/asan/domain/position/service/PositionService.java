@@ -177,14 +177,12 @@ public class PositionService {
             uniqueBSSIDMap.copyFrom(baseMap);
 
             try {
-
                 System.out.println(posData.beaconData() + " " + posData.sectorName());
                 // positionState이 null이 아닌 상태는 "비콘 수집" 상태임
                 if (!Objects.isNull(positionState)) {
                     System.out.println("positionState");
                     System.out.println("Check adding");
                     addPosData(posData, positionState.getWardId(), positionState.getSectorName());
-
                 } else {
                     for (BeaconDataDTO beaconData : posData.beaconData()) {
                         System.out.println(
@@ -194,25 +192,11 @@ public class PositionService {
                 }
             } finally {
                 baseMap.copyFrom(uniqueBSSIDMap);
-
                 prediction = "null";
                 if (!baseMap.getBSSIDMap().isEmpty()) {
                     prediction = sendBeaconDataToFlask(uniqueBSSIDMap);
                 }
                 baseMap.resetBSSIDMapValues();
-
-                // prediction이 나타나지 않을 경우 execption 처리 재확인
-                // try {
-                // wardId = sectorRepository.findByPositionAndIsWebTrue(prediction)
-                // .orElseThrow(() -> new NoSuchElementException("No sector found for the
-                // given prediction"))
-                // .getImage()
-                // .getId();
-                //
-                // } catch (NoSuchElementException e) {
-                // System.out.println("Image ID could not be retrieved: " + e.getMessage());
-                // // 예외 발생 시 추가적인 로직을 여기에 작성
-                // }
                 System.out.println("After reset: " + baseMap.getBSSIDMap());
             }
         }
@@ -223,7 +207,10 @@ public class PositionService {
         watch.updateCurrentLocation(prediction);
         updatePositionData(watch.getId(), PositionData.of(prediction));
 
-        return PositionResponseDto.of(watch.getId(), watch.getPatient().getName(), wardId, prediction);
+        // 환자 할당 여부를 체크하여, 할당되지 않은 경우 기본값을 사용
+        String patientName = (watch.getPatient() != null) ? watch.getPatient().getName() : "Unassigned";
+
+        return PositionResponseDto.of(watch.getId(), patientName, wardId, prediction);
     }
 
     private String sendBeaconDataToFlask(UniqueBSSIDMap uniqueBSSIDMap) throws JSONException {
