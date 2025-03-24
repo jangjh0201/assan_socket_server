@@ -17,7 +17,6 @@ public class Beacon {
     private Long id;
 
     private Long wardId;
-    private Long sectorId;
     private String sectorName;
 
     @Column(columnDefinition = "json")

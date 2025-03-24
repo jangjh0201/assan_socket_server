@@ -21,6 +21,10 @@ public class SectorDTO {
     @JsonProperty("sector_name")
     private String name;
 
+    private Long wardId;
+    private Long sectorId;
+    private String sectorName;
+
     @JsonProperty("start_x")
     private BigDecimal startX;
 

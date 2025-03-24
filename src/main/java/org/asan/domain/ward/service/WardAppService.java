@@ -9,8 +9,8 @@ import org.asan.domain.ward.dto.WardResponseDto;
 import org.asan.domain.ward.dto.WardsDTO;
 import org.asan.domain.ward.entity.Ward;
 import org.asan.domain.ward.repository.WardRepository;
-import org.asansocketserver.domain.sector.dto.SectorDTO;
-import org.asansocketserver.domain.sector.repository.SectorRepository;
+import org.asan.domain.sector.dto.SectorDTO;
+import org.asan.domain.sector.repository.SectorRepository;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -53,15 +53,16 @@ public class WardAppService {
 
         if (!sectors.isEmpty()) {
             for (Sector sector : sectors) {
-                SectorDTO sectorDTO = new SectorDTO();
-                sectorDTO.setWardId(sector.getWard().getId());
-                sectorDTO.setSectorId(sector.getId());
-                sectorDTO.setSectorName(sector.getName());
-                sectorDTO.setStartX(sector.getStartX());
-                sectorDTO.setStartY(sector.getStartY());
-                sectorDTO.setEndX(sector.getEndX());
-                sectorDTO.setEndY(sector.getEndY());
-                sectorDTO.setSectorType(sector.getSectorType());
+                SectorDTO sectorDTO = SectorDTO.builder()
+                        .wardId(sector.getWard().getId())
+                        .sectorId(sector.getId())
+                        .sectorName(sector.getName())
+                        .startX(sector.getStartX())
+                        .startY(sector.getStartY())
+                        .endX(sector.getEndX())
+                        .endY(sector.getEndY())
+                        .sectorType(sector.getSectorType())
+                        .build();
                 sectorDTOs.add(sectorDTO);
             }
         }

@@ -41,7 +41,7 @@ public class SensorService {
     private final WatchRepository watchRepository;
     private final SimpMessageSendingOperations sendingOperations;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final NotificationService notificationService;
+    // private final NotificationService notificationService;
 
     private Watch findByWatchOrThrow(Long id) {
         return watchRepository.findById(id)
@@ -99,12 +99,14 @@ public class SensorService {
 
             // WebSocket 고심박 알림 to 프론트 구현 필요
 
-            notificationService.createAndSaveNotification(watch.get(), currentLocation, "고심박");
+            // notificationService.createAndSaveNotification(watch.get(), currentLocation,
+            // "고심박");
         } else if (watch.get().getPatient().getMinHeartRate() > heartRate.getValue()) {
 
             // WebSocket 저심박 알림 to 프론트 구현 필요
 
-            notificationService.createAndSaveNotification(watch.get(), currentLocation, "저심박");
+            // notificationService.createAndSaveNotification(watch.get(), currentLocation,
+            // "저심박");
         }
 
         Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);

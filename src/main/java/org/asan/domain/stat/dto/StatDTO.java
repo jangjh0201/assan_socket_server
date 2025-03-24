@@ -4,7 +4,7 @@ import lombok.*;
 
 import java.util.List;
 
-import org.asan.domain.sensor.entity.SensorRow;
+import org.asan.batch.cdc.entity.SensorRow;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

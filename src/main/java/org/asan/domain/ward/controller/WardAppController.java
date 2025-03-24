@@ -9,7 +9,7 @@ import org.asan.domain.ward.dto.WardResponseDto;
 import org.asan.domain.ward.dto.WardsDTO;
 import org.asan.domain.ward.service.WardAppService;
 import org.asan.global.common.SuccessResponse;
-import org.asansocketserver.domain.sector.dto.SectorDTO;
+import org.asan.domain.sector.dto.SectorDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
