@@ -1,27 +1,58 @@
 package org.asan.socket.config;
 
+import org.asan.socket.handler.StompErrorHandler;
+import org.asan.socket.interceptor.StompInterceptor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+@Slf4j
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSocketMessageBroker
-@RequiredArgsConstructor
 public class WebSocketMessageBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
+    private final StompInterceptor stompInterceptor;
+    private final StompErrorHandler stompErrorHandler;
+
     @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic"); // 메시지 브로커 설정 (구독용)
-        config.setApplicationDestinationPrefixes("/app"); // 클라이언트 메시지 전송 경로
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        log.info("Configuring Message Broker with heartbeat");
+        registry.setApplicationDestinationPrefixes("/app");
+        registry.enableSimpleBroker("/queue", "/topic")
+                .setHeartbeatValue(new long[] {10000, 10000})
+                .setTaskScheduler(webSocketTaskScheduler());
+    }
+
+    @Bean
+    public TaskScheduler webSocketTaskScheduler() {
+        log.info("Creating TaskScheduler for WebSocket heartbeats");
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("wss-heartbeat-thread-");
+        scheduler.initialize();
+        return scheduler;
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws/stomp") // STOMP WebSocket 엔드포인트
-                .setAllowedOriginPatterns("*");
+        registry.addEndpoint("/ws").setAllowedOrigins("*");
+        registry.addEndpoint("/ws").setAllowedOrigins("*").withSockJS();
+        registry.setErrorHandler(stompErrorHandler);
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(stompInterceptor);
     }
 }

@@ -3,7 +3,7 @@ package org.asan.domain.sensor.entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
-import org.asan.domain.sensor.dto.GyroscopeDTO;
+import org.asan.domain.sensor.dto.request.GyroscopeRequestDto;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -30,14 +30,14 @@ public class SensorGyroscope {
     @Field(name = "timestamp")
     private Long timestamp;
 
-    public static SensorGyroscope createSensor(Long watchId, GyroscopeDTO request) {
+    public static SensorGyroscope createSensor(Long watchId, GyroscopeRequestDto gyroscopeRequestDto) {
         return SensorGyroscope.builder()
                 .date(LocalDate.now())
                 .watchId(watchId)
-                .gyroX(request.gyroX())
-                .gyroY(request.gyroY())
-                .gyroZ(request.gyroZ())
-                .timestamp(request.timestamp())
+                .gyroX(gyroscopeRequestDto.gyroX())
+                .gyroY(gyroscopeRequestDto.gyroY())
+                .gyroZ(gyroscopeRequestDto.gyroZ())
+                .timestamp(gyroscopeRequestDto.timestamp())
                 .build();
     }
 }

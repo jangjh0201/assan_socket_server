@@ -3,7 +3,7 @@ package org.asan.domain.sensor.entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
-import org.asan.domain.sensor.dto.BarometerDTO;
+import org.asan.domain.sensor.dto.request.BarometerRequestDto;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -26,12 +26,12 @@ public class SensorBarometer {
     @Field(name = "timestamp")
     private Long timestamp;
 
-    public static SensorBarometer createSensor(Long watchId, BarometerDTO request) {
+    public static SensorBarometer createSensor(Long watchId, BarometerRequestDto barometerRequestDto) {
         return SensorBarometer.builder()
                 .date(LocalDate.now())
                 .watchId(watchId)
-                .value(request.value())
-                .timestamp(request.timestamp())
+                .value(barometerRequestDto.value())
+                .timestamp(barometerRequestDto.timestamp())
                 .build();
     }
 }

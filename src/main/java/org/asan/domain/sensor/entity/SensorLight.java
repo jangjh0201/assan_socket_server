@@ -3,12 +3,11 @@ package org.asan.domain.sensor.entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
-import org.asan.domain.sensor.dto.LightDTO;
+import org.asan.domain.sensor.dto.request.LightRequestDto;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
-
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
@@ -26,12 +25,12 @@ public class SensorLight {
     @Field(name = "timestamp")
     private Long timestamp;
 
-    public static SensorLight createSensor(Long watchId, LightDTO request) {
+    public static SensorLight createSensor(Long watchId, LightRequestDto lightRequestDto) {
         return SensorLight.builder()
                 .date(LocalDate.now())
                 .watchId(watchId)
-                .value(request.value())
-                .timestamp(request.timestamp())
+                .value(lightRequestDto.value())
+                .timestamp(lightRequestDto.timestamp())
                 .build();
     }
 }

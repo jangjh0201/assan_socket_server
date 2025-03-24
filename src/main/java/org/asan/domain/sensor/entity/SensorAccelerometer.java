@@ -3,7 +3,7 @@ package org.asan.domain.sensor.entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
-import org.asan.domain.sensor.dto.AccelerometerDTO;
+import org.asan.domain.sensor.dto.request.AccelerometerRequestDto;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -30,14 +30,14 @@ public class SensorAccelerometer {
     @Field(name = "accZ")
     private Float accZ;
 
-    public static SensorAccelerometer createSensor(Long watchId, AccelerometerDTO request) {
+    public static SensorAccelerometer createSensor(Long watchId, AccelerometerRequestDto accelerometerRequestDto) {
         return SensorAccelerometer.builder()
                 .date(LocalDate.now())
                 .watchId(watchId)
-                .timestamp(request.timestamp())
-                .accX(request.accX())
-                .accY(request.accY())
-                .accZ(request.accZ())
+                .timestamp(accelerometerRequestDto.timestamp())
+                .accX(accelerometerRequestDto.accX())
+                .accY(accelerometerRequestDto.accY())
+                .accZ(accelerometerRequestDto.accZ())
                 .build();
     }
 }

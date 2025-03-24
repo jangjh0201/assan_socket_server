@@ -1,11 +1,12 @@
 package org.asan.domain.sector.entity;
 
 import java.util.List;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
-import org.asan.domain.beacon.entity.Beacon;
 import org.asan.domain.patient.entity.Patient;
 import org.asan.domain.patient.entity.RestrictedArea;
+import org.asan.domain.position.entity.entity.Beacon;
 import org.asan.domain.sector.enums.SectorType;
 import org.asan.domain.ward.entity.Ward;
 
@@ -28,18 +29,18 @@ public class Sector {
     private String name;
 
     // 구역의 시작 좌표
-    @Column(name = "start_x")
-    private Double startX;
+    @Column(name = "start_x", precision = 10, scale = 4)
+    private BigDecimal startX;
 
     @Column(name = "start_y")
-    private Double startY;
+    private BigDecimal startY;
 
     // 구역의 끝 좌표
     @Column(name = "end_x")
-    private Double endX;
+    private BigDecimal endX;
 
     @Column(name = "end_y")
-    private Double endY;
+    private BigDecimal endY;
 
     // 구역 타입(예: "restricted", "public" 등)
     @Enumerated(EnumType.STRING)

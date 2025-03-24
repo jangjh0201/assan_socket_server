@@ -5,8 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.asan.auth.entity.Account;
 import org.asan.auth.repository.AccountRepository;
-import org.asan.domain.beacon.entity.Beacon;
-import org.asan.domain.beacon.repository.BeaconRepository;
 import org.asan.domain.notification.entity.Notification;
 import org.asan.domain.notification.repository.NotificationRepository;
 import org.asan.domain.patient.entity.NoContact;
@@ -38,6 +36,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -68,7 +67,6 @@ public class EntityInitializer {
         private final PatientRepository patientRepository;
         private final NoContactRepository noContactRepository;
         private final RestrictedAreaRepository restrictedAreaRepository;
-        private final BeaconRepository beaconRepository;
         private final PostRepository postRepository;
 
         @PostConstruct
@@ -76,7 +74,6 @@ public class EntityInitializer {
                 // **기존 데이터 삭제 (종속 관계 고려하여 순서 삭제)**
                 notificationRepository.deleteAll();
                 postRepository.deleteAll();
-                beaconRepository.deleteAll();
                 restrictedAreaRepository.deleteAll();
                 noContactRepository.deleteAll();
                 patientRepository.deleteAll();
@@ -137,37 +134,37 @@ public class EntityInitializer {
                 List<Sector> sectors = List.of(
                                 Sector.builder()
                                                 .name("17401호")
-                                                .startX(175.0)
-                                                .startY(75.0)
-                                                .endX(346.0)
-                                                .endY(321.0)
+                                                .startX(BigDecimal.valueOf(175.0))
+                                                .startY(BigDecimal.valueOf(75.0))
+                                                .endX(BigDecimal.valueOf(346.0))
+                                                .endY(BigDecimal.valueOf(321.0))
                                                 .sectorType(SectorType.MALE)
                                                 .ward(wards.get(0))
                                                 .build(),
                                 Sector.builder()
                                                 .name("17402호")
-                                                .startX(987.0)
-                                                .startY(413.0)
-                                                .endX(1414.0)
-                                                .endY(757.0)
+                                                .startX(BigDecimal.valueOf(987.0))
+                                                .startY(BigDecimal.valueOf(413.0))
+                                                .endX(BigDecimal.valueOf(1414.0))
+                                                .endY(BigDecimal.valueOf(757.0))
                                                 .sectorType(SectorType.RESTRICTED)
                                                 .ward(wards.get(0))
                                                 .build(),
                                 Sector.builder()
                                                 .name("17403호")
-                                                .startX(588.0)
-                                                .startY(1020.0)
-                                                .endX(714.0)
-                                                .endY(1360.0)
+                                                .startX(BigDecimal.valueOf(588.0))
+                                                .startY(BigDecimal.valueOf(1020.0))
+                                                .endX(BigDecimal.valueOf(714.0))
+                                                .endY(BigDecimal.valueOf(1360.0))
                                                 .sectorType(SectorType.PUBLIC)
                                                 .ward(wards.get(0))
                                                 .build(),
                                 Sector.builder()
                                                 .name("17404호")
-                                                .startX(1360.0)
-                                                .startY(1020.0)
-                                                .endX(1567.0)
-                                                .endY(1400.0)
+                                                .startX(BigDecimal.valueOf(1360.0))
+                                                .startY(BigDecimal.valueOf(1020.0))
+                                                .endX(BigDecimal.valueOf(1567.0))
+                                                .endY(BigDecimal.valueOf(1400.0))
                                                 .sectorType(SectorType.FEMALE)
                                                 .ward(wards.get(0))
                                                 .build());
@@ -379,15 +376,6 @@ public class EntityInitializer {
                                                 .build());
                 restrictedAreaRepository.saveAll(restrictedAreas);
                 log.info("RestrictedArea 초기화 완료");
-
-                // **12. Beacon 생성 (Sector와 연관)**
-                List<Beacon> beacons = List.of(
-                                Beacon.builder()
-                                                .bssid("00:11:22:33:44:55")
-                                                .rssi("-50")
-                                                .sector(sectors.get(0))
-                                                .build());
-                beaconRepository.saveAll(beacons);
 
                 // **13. Post 생성**
                 PostService postService = new PostService(postRepository);

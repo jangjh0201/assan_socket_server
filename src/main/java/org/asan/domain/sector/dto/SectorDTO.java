@@ -1,6 +1,9 @@
 package org.asan.domain.sector.dto;
 
 import lombok.*;
+
+import java.math.BigDecimal;
+
 import org.asan.domain.sector.enums.SectorType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -19,16 +22,16 @@ public class SectorDTO {
     private String name;
 
     @JsonProperty("start_x")
-    private Double startX;
+    private BigDecimal startX;
 
     @JsonProperty("start_y")
-    private Double startY;
+    private BigDecimal startY;
 
     @JsonProperty("end_x")
-    private Double endX;
+    private BigDecimal endX;
 
     @JsonProperty("end_y")
-    private Double endY;
+    private BigDecimal endY;
 
     @JsonProperty("sector_type")
     private SectorType sectorType;
