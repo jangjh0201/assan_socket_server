@@ -9,16 +9,15 @@ import java.time.LocalDateTime;
 public record PositionResponseDto(
         Long watchId,
         String watchName,
-        Long wardId,
-        String sectorName,
-        LocalDateTime currentTime
-        ) {
+        Long imageId,
+        String position,
+        LocalDateTime currentTime) {
     public static PositionResponseDto of(Long watchId, String watchName, Long wardId, String sectorName) {
         return PositionResponseDto.builder()
                 .watchId(watchId)
                 .watchName(watchName)
-                .wardId(wardId)
-                .sectorName(sectorName)
+                .imageId(wardId)
+                .position(sectorName)
                 .currentTime(LocalDateTime.now())
                 .build();
     }

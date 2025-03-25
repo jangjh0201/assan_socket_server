@@ -64,11 +64,12 @@ public class PositionService {
                 .collect(Collectors.toList());
     }
 
+    // 기존 : 드래그 후 위치 저장
     public void insertState(StateDTO stateDTO) {
 
         Watch watch = findByWatchOrThrow(stateDTO.watchId());
-        PositionState positionState = PositionState.createPositionState(watch.getId(), stateDTO.wardId(),
-                stateDTO.sectorName(), System.currentTimeMillis(), stateDTO.endTime());
+        PositionState positionState = PositionState.createPositionState(watch.getId(), stateDTO.imageId(),
+                stateDTO.position(), System.currentTimeMillis(), stateDTO.endTime());
         positionStateRepository.save(positionState);
 
         long delay = stateDTO.endTime() - System.currentTimeMillis();
@@ -182,7 +183,7 @@ public class PositionService {
                 if (!Objects.isNull(positionState)) {
                     System.out.println("positionState");
                     System.out.println("Check adding");
-                    addPosData(posData, positionState.getWardId(), positionState.getSectorName());
+                    addPosData(posData, positionState.getImageId(), positionState.getPosition());
                 } else {
                     for (BeaconDataDTO beaconData : posData.beaconData()) {
                         System.out.println(
@@ -208,7 +209,7 @@ public class PositionService {
         updatePositionData(watch.getId(), PositionData.of(prediction));
 
         // 환자 할당 여부를 체크하여, 할당되지 않은 경우 기본값을 사용
-        String patientName = (watch.getPatient() != null) ? watch.getPatient().getName() : "Unassigned";
+        String patientName = (watch.getPatient() != null) ? watch.getPatient().getName() : "지정되지 않음";
 
         return PositionResponseDto.of(watch.getId(), patientName, wardId, prediction);
     }

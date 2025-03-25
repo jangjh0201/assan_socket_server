@@ -5,6 +5,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
@@ -13,10 +15,9 @@ import org.springframework.data.redis.core.index.Indexed;
 public class PositionState {
     @Id
     private Long id;
-    private Long wardId;
-    private Long sectorId;
+    private Long imageId;
     @Indexed
-    private String sectorName;
+    private String position;
     private Long startTime;
     private Long endTime;
 
@@ -24,8 +25,8 @@ public class PositionState {
             Long endTime) {
         return PositionState.builder()
                 .id(watchId)
-                .wardId(wardId)
-                .sectorName(sectorName)
+                .imageId(wardId)
+                .position(sectorName)
                 .startTime(startTime)
                 .endTime(endTime)
                 .build();

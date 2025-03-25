@@ -1,7 +1,8 @@
 package org.asan.domain.position.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record BeaconCountsDTO(
-        String sectorName,
-        int counts
-) {
+                @JsonProperty("position") String sectorName,
+                int counts) {
 }
