@@ -54,25 +54,31 @@ public class StompInterceptor implements ChannelInterceptor {
         if (StompCommand.SUBSCRIBE.equals(command)) {
             sensorScheduler.broadcastWatchList();
         }
-
+        
         if (StompCommand.CONNECT.equals(command)) {
             Long watchId = getWatchByAuthorizationHeader(accessor);
             setWatchIdFromStompHeader(accessor, watchId);
-            Optional<Watch> watch = watchRepository.findById(watchId);
-            // 환자 할당이 되어있지 않은 워치는 모니터링 불가
-            if (watch.get().getPatient() == null) {
-                log.warn("[UNASSIGNED]:: watchId : {}", watchId);
-                throw new SocketUnauthorizedException(WATCH_NOT_ASSIGNED);
+            Optional<Watch> watchOptional = watchRepository.findById(watchId);
+
+            if (!watchOptional.isPresent()) {
+                log.warn("Watch not found: {}", watchId);
             } else {
+                Watch watch = watchOptional.get();
+                // 환자 할당이 되어있지 않으면 센서 데이터 작업만 건너뛰고, 워치 활성화 및 위치 추적은 진행함
+                if (watch.getPatient() == null) {
+                    log.warn("[UNASSIGNED]:: watchId : {}", watchId);
+                }
+
                 if (!watchId.equals(monitoringId)) {
                     createWatchLiveAndSave(watchId);
-                    createSensorDataAndSave(watchId, watch.get().getPatient().getName());
                     createPositionAndSave(watchId);
+                    if (watch.getPatient() != null) {
+                        createSensorDataAndSave(watchId, watch.getPatient().getName());
+                    }
                 }
             }
             log.info("[CONNECT]:: watchId : {}", watchId);
             sensorScheduler.broadcastWatchList();
-
         } else if (StompCommand.DISCONNECT.equals(command)) {
             Long watchId = (Long) getWatchIdFromStompHeader(accessor);
             if (existWatchInRedis(watchId) && !watchId.equals(monitoringId)) {
