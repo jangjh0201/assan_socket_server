@@ -233,33 +233,55 @@ public class EntityInitializer {
                 List<Watch> watches = List.of(
                                 Watch.builder()
                                                 .uuid("watch-uuid-001")
+                                                .device("watch-device-001")
+                                                .currentLocation("null")
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-002")
+                                                .device("watch-device-002")
+                                                .currentLocation("null")
+
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-003")
+                                                .device("watch-device-003")
+                                                .currentLocation("null")
+
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-004")
+                                                .device("watch-device-004")
+                                                .currentLocation("null")
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-005")
+                                                .device("watch-device-005")
+                                                .currentLocation("null")
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-006")
+                                                .device("watch-device-006")
+                                                .currentLocation("null")
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-007")
+                                                .device("watch-device-007")
+                                                .currentLocation("null")
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-008")
+                                                .device("watch-device-008")
+                                                .currentLocation("null")
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-009")
+                                                .device("watch-device-009")
+                                                .currentLocation("null")
                                                 .build(),
                                 Watch.builder()
                                                 .uuid("watch-uuid-0010")
+                                                .device("watch-device-0010")
+                                                .currentLocation("null")
                                                 .build());
                 watchRepository.saveAll(watches);
                 log.info("Watch 초기화 완료");
