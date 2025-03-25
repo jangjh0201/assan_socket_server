@@ -9,6 +9,7 @@ import org.asan.domain.ward.dto.WardResponseDto;
 import org.asan.domain.ward.dto.WardsDTO;
 import org.asan.domain.ward.entity.Ward;
 import org.asan.domain.ward.repository.WardRepository;
+import org.asan.domain.sector.dto.CoordinateDTO;
 import org.asan.domain.sector.dto.SectorDTO;
 import org.asan.domain.sector.repository.SectorRepository;
 import org.springframework.stereotype.Service;
@@ -45,30 +46,33 @@ public class WardAppService {
         return wardsDTO;
     }
 
-    public List<SectorDTO> getSectors(Long id) {
-        Optional<Ward> ward = wardRepository.findById(id);
-        List<Sector> sectors = sectorRepository.findAllByWard(ward.get());
+    // // sector -> coorditateDTO 치환 (데이터 일관성을 위해 추후 앱 수정 필요)
+    // public List<CoordinateDTO> getCoordinates(Long id) {
+    //     Optional<Ward> ward = wardRepository.findById(id);
+    //     List<Sector> sectors = sectorRepository.findAllByWard(ward.get());
 
-        List<SectorDTO> sectorDTOs = new ArrayList<>();
+    //     List<CoordinateDTO> coordinateDTOs = new ArrayList<>();
 
-        if (!sectors.isEmpty()) {
-            for (Sector sector : sectors) {
-                SectorDTO sectorDTO = SectorDTO.builder()
-                        .wardId(sector.getWard().getId())
-                        .sectorId(sector.getId())
-                        .sectorName(sector.getName())
-                        .startX(sector.getStartX())
-                        .startY(sector.getStartY())
-                        .endX(sector.getEndX())
-                        .endY(sector.getEndY())
-                        .sectorType(sector.getSectorType())
-                        .build();
-                sectorDTOs.add(sectorDTO);
-            }
-        }
+    //     if (!sectors.isEmpty()) {
+    //         for (Sector sector : sectors) {
+    //             CoordinateDTO coordinateDTO = CoordinateDTO.builder()
+    //                     .imageId(id)
+    //                     .coordinateId(sector.getId())
+    //                     .latitude(null)
+    //                     .longitude(null)
+    //                     .position(sector.getName())
+    //                     .startX(sector.getStartX())
+    //                     .startY(sector.getStartY())
+    //                     .endX(sector.getEndX())
+    //                     .endY(sector.getEndY())
+    //                     .setting(sector.getSectorType().toString())
+    //                     .build();
+    //             coordinateDTOs.add(coordinateDTO);
+    //         }
+    //     }
 
-        return sectorDTOs;
-    }
+    //     return coordinateDTOs;
+    // }
 
     @Transactional
     public List<PositionDTO> getSectorNames() {
