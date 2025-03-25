@@ -19,6 +19,8 @@ import org.assansocketserver.domain.position.mongorepository.PositionMongoReposi
 import org.assansocketserver.domain.position.repository.BeaconRepository;
 import org.assansocketserver.domain.position.repository.PositionStateRepository;
 import org.assansocketserver.domain.position.util.UniqueBSSIDMap;
+import org.assansocketserver.domain.sector.entity.Sector;
+import org.assansocketserver.domain.sector.repository.SectorRepository;
 import org.assansocketserver.domain.watch.entity.Watch;
 import org.assansocketserver.domain.watch.repository.WatchRepository;
 import org.assansocketserver.global.error.exception.EntityNotFoundException;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import static org.assansocketserver.global.error.ErrorCode.ENTITY_NOT_FOUND;
 import static org.assansocketserver.global.error.ErrorCode.WATCH_UUID_NOT_FOUND;
 
 import java.io.FileWriter;
@@ -46,6 +49,7 @@ import java.util.stream.Collectors;
 public class PositionService {
     private final BeaconRepository beaconRepository;
     private final WatchRepository watchRepository;
+    private final SectorRepository sectorRepository;
     private final PositionStateRepository positionStateRepository;
     private final PositionMongoRepository positionMongoRepository;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -246,11 +250,13 @@ public class PositionService {
         for (BeaconDataDTO beaconData : posData.beaconData()) {
             System.out.println("scaning beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
         }
+        Sector sector = findSectorByNameOrThrow(wardId, sectorName);
 
         Beacon beacon = Beacon.builder()
                 .wardId(wardId)
                 .sectorName(sectorName)
                 .beaconData(convertBeaconDataDtoToJson(posData.beaconData()))
+                .sector(sector)
                 .build();
 
         beaconRepository.save(beacon);
@@ -268,6 +274,12 @@ public class PositionService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private Sector findSectorByNameOrThrow(Long wardId, String sectorName) {
+        return sectorRepository.findByWardIdAndName(wardId, sectorName)
+                .orElseThrow(() -> new EntityNotFoundException(ENTITY_NOT_FOUND));
+
     }
 
     private Watch findByWatchOrThrow(String id) {
