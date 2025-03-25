@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import org.assansocketserver.auth.dto.AccountDTO;
 import org.assansocketserver.auth.entity.Account;
 import org.assansocketserver.auth.repository.AccountRepository;
-import org.assansocketserver.domain.risk.entity.Risk;
 import org.assansocketserver.domain.risk.service.RiskService;
 import org.assansocketserver.domain.ward.dto.WardDTO;
 import org.assansocketserver.domain.ward.entity.Ward;

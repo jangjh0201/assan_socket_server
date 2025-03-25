@@ -27,7 +27,6 @@ public class Watch {
 
     public void updateCurrentLocation(String currentLocation) {
         this.currentLocation = currentLocation;
-
     }
 
     public static Watch createWatch(String uuid, String device) {
@@ -37,5 +36,4 @@ public class Watch {
                 .patient(null)
                 .build();
     }
-
 }

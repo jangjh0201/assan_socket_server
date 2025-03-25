@@ -1,17 +1,20 @@
 package org.assansocketserver.domain.watch.utils;
 
+import org.assansocketserver.domain.watch.dto.WatchDTO;
+import org.assansocketserver.domain.watch.entity.Watch;
+
 public class WatchMapper {
-    public static org.assansocketserver.domain.watch.dto.WatchDTO toDTO(org.assansocketserver.domain.watch.entity.Watch entity) {
+    public static WatchDTO toDTO(Watch entity) {
         return org.assansocketserver.domain.watch.dto.WatchDTO.builder()
-            .id(entity.getId())
-            .uuid(entity.getUuid())
-            .build();
+                .id(entity.getId())
+                .uuid(entity.getUuid())
+                .build();
     }
 
-    public static org.assansocketserver.domain.watch.entity.Watch toEntity(org.assansocketserver.domain.watch.dto.WatchDTO dto) {
+    public static Watch toEntity(WatchDTO dto) {
         return org.assansocketserver.domain.watch.entity.Watch.builder()
-            .id(dto.getId())
-            .uuid(dto.getUuid())
-            .build();
+                .id(dto.getId())
+                .uuid(dto.getUuid())
+                .build();
     }
 }

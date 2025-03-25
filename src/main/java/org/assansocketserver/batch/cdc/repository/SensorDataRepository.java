@@ -23,5 +23,5 @@ public interface SensorDataRepository extends MongoRepository<SensorData, Object
 
     List<SensorData> findAllByNameAndDateBetween(String name, LocalDate localDate, LocalDate localDate1);
 
-    SensorData findByWatchId(Long aLong);
+    SensorData findByWatchId(Long watchId);
 }
