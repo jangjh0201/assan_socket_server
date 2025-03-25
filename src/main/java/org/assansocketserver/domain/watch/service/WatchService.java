@@ -24,7 +24,7 @@ public class WatchService {
                 List<WatchDTO> watchDTOs = watchRepository.findByPatientIsNull().stream()
                                 .map(watch -> WatchDTO.builder()
                                                 .id(watch.getId())
-                                                // .uuid(watch.getUuid())
+                                                .uuid(watch.getUuid())
                                                 .battery(90)
                                                 .charging(false)
                                                 .build())
@@ -35,7 +35,7 @@ public class WatchService {
                         watchDTOs.add(
                                         WatchDTO.builder()
                                                         .id(patient.getWatch().getId())
-                                                        // .uuid(patient.getWatch().getUuid())
+                                                        .uuid(patient.getWatch().getUuid())
                                                         .battery(100)
                                                         .charging(true)
                                                         .build());

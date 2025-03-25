@@ -1,17 +1,16 @@
 package org.assansocketserver.domain.stat.service;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.assansocketserver.batch.cdc.entity.SensorRow;
 import org.assansocketserver.domain.patient.repository.PatientRepository;
 import org.assansocketserver.domain.stat.dto.StatDTO;
 import org.assansocketserver.domain.ward.entity.Ward;
 import org.assansocketserver.domain.ward.repository.WardRepository;
 import org.assansocketserver.domain.ward.repository.WardSpecification;
+import org.assansocketserver.domain.watch.repository.WatchLiveRepository;
 import org.assansocketserver.domain.watch.repository.WatchRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
@@ -24,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class StatService {
 
         private final WardRepository wardRepository;
-        private final WatchRepository watchRepository;
+        private final WatchLiveRepository watchLiveRepository;
         private final PatientRepository patientRepository;
 
         @Value("${disk.root-path}")
@@ -45,9 +44,9 @@ public class StatService {
                                                 .currentStorage((double) diskStat.get("used_space"))
                                                 .totalStorage((double) diskStat.get("total_space"))
                                                 .logsValid(true)
-                                                .currentWatch(5)
+                                                .currentWatch(watchLiveRepository.findAllByLive(true).size())
                                                 .totalWatch(patientRepository.countByWardAndWatchIsNotNull(ward))
-                                                .currentPatient(5)
+                                                .currentPatient(watchLiveRepository.findAllByLive(true).size())
                                                 .totalPatient(patientRepository.countByWard(ward))
                                                 .build())
                                 .collect(Collectors.toList());
@@ -64,50 +63,50 @@ public class StatService {
                 Map<String, Object> diskStat = getDiskStat();
 
                 // List<SensorRow> sensorRowList = List.of(
-                //                 SensorRow.builder()
-                //                                 .accX(-0.4213795065879822f)
-                //                                 .accY(0.33039984107017517f)
-                //                                 .accZ(9.605537414550781f)
-                //                                 .gyroX(-0.0012217304902151227f)
-                //                                 .gyroY(0.004886921960860491f)
-                //                                 .gyroZ(0.0f)
-                //                                 .barometerValue(1020.915771484375f)
-                //                                 .heartRateValue(80)
-                //                                 .lightValue(316)
-                //                                 .timestamp(LocalDateTime.now().toString())
-                //                                 .build(),
-                //                 SensorRow.builder()
-                //                                 .accX(-0.4213795425232f)
-                //                                 .accY(0.323457017517f)
-                //                                 .accZ(9.781f)
-                //                                 .gyroX(-0.031223151227f)
-                //                                 .gyroY(0.00623860491f)
-                //                                 .gyroZ(3.0f)
-                //                                 .barometerValue(1020f)
-                //                                 .heartRateValue(82)
-                //                                 .lightValue(316)
-                //                                 .timestamp(LocalDateTime.now().plusSeconds(1).toString())
-                //                                 .build());
+                // SensorRow.builder()
+                // .accX(-0.4213795065879822f)
+                // .accY(0.33039984107017517f)
+                // .accZ(9.605537414550781f)
+                // .gyroX(-0.0012217304902151227f)
+                // .gyroY(0.004886921960860491f)
+                // .gyroZ(0.0f)
+                // .barometerValue(1020.915771484375f)
+                // .heartRateValue(80)
+                // .lightValue(316)
+                // .timestamp(LocalDateTime.now().toString())
+                // .build(),
+                // SensorRow.builder()
+                // .accX(-0.4213795425232f)
+                // .accY(0.323457017517f)
+                // .accZ(9.781f)
+                // .gyroX(-0.031223151227f)
+                // .gyroY(0.00623860491f)
+                // .gyroZ(3.0f)
+                // .barometerValue(1020f)
+                // .heartRateValue(82)
+                // .lightValue(316)
+                // .timestamp(LocalDateTime.now().plusSeconds(1).toString())
+                // .build());
 
                 // StatDTO statDTO = StatDTO.builder()
-                //                 .currentStorage((double) diskStat.get("used_space"))
-                //                 .totalStorage((double) diskStat.get("total_space"))
-                //                 .currentWatch(5)
-                //                 .totalWatch(patientRepository.countByWardAndWatchIsNotNull(ward))
-                //                 .currentPatient(5)
-                //                 .totalPatient(patientRepository.countByWard(ward))
-                //                 .sensorRowList(sensorRowList)
-                //                 .build();
+                // .currentStorage((double) diskStat.get("used_space"))
+                // .totalStorage((double) diskStat.get("total_space"))
+                // .currentWatch(5)
+                // .totalWatch(patientRepository.countByWardAndWatchIsNotNull(ward))
+                // .currentPatient(5)
+                // .totalPatient(patientRepository.countByWard(ward))
+                // .sensorRowList(sensorRowList)
+                // .build();
 
                 // // 최종 반환 맵 구조를 원하는 형식으로 변경
                 // return Map.of(
-                //                 "current_storage", statDTO.getCurrentStorage(),
-                //                 "total_storage", statDTO.getTotalStorage(),
-                //                 "current_patient", statDTO.getCurrentPatient(),
-                //                 "total_patient", statDTO.getTotalPatient(),
-                //                 "current_watch", statDTO.getCurrentWatch(),
-                //                 "total_watch", statDTO.getTotalWatch(),
-                //                 "stats", statDTO.getSensorRowList());
+                // "current_storage", statDTO.getCurrentStorage(),
+                // "total_storage", statDTO.getTotalStorage(),
+                // "current_patient", statDTO.getCurrentPatient(),
+                // "total_patient", statDTO.getTotalPatient(),
+                // "current_watch", statDTO.getCurrentWatch(),
+                // "total_watch", statDTO.getTotalWatch(),
+                // "stats", statDTO.getSensorRowList());
                 return null;
         }
 
