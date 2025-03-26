@@ -16,7 +16,6 @@ import org.assansocketserver.domain.patient.repository.NoContactRepository;
 import org.assansocketserver.domain.patient.repository.PatientRepository;
 import org.assansocketserver.domain.patient.repository.RestrictedAreaRepository;
 import org.assansocketserver.domain.post.dto.PostRequest;
-import org.assansocketserver.domain.post.entity.Post;
 import org.assansocketserver.domain.post.repository.PostRepository;
 import org.assansocketserver.domain.post.service.PostService;
 import org.assansocketserver.domain.risk.entity.Risk;
@@ -64,7 +63,6 @@ public class EntityInitializer {
         private final SectorRepository sectorRepository;
         private final RiskTypeRepository riskTypeRepository;
         private final RiskRepository riskRepository;
-        private final WatchRepository watchRepository;
         private final PatientRepository patientRepository;
         private final NoContactRepository noContactRepository;
         private final RestrictedAreaRepository restrictedAreaRepository;
@@ -78,7 +76,7 @@ public class EntityInitializer {
                 restrictedAreaRepository.deleteAll();
                 noContactRepository.deleteAll();
                 patientRepository.deleteAll();
-                watchRepository.deleteAll();
+                // watchRepository.deleteAll();
                 riskRepository.deleteAll();
                 riskTypeRepository.deleteAll();
                 riskGroupRepository.deleteAll();
@@ -172,6 +170,8 @@ public class EntityInitializer {
                 sectorRepository.saveAll(sectors);
                 log.info("Sector 초기화 완료");
 
+                // List<Sector> sectors = sectorRepository.findAll();
+
                 // **4. Riskgroup 생성**
                 List<RiskGroup> riskGroups = List.of(
                                 RiskGroup.builder()
@@ -216,7 +216,7 @@ public class EntityInitializer {
                                                 .riskType(riskTypes.get(0))
                                                 .build(),
                                 Risk.builder()
-                                                .availability(false)
+                                                .availability(true)
                                                 .severity(Severity.MID)
                                                 .ward(wards.get(0))
                                                 .riskType(riskTypes.get(1))
@@ -230,62 +230,62 @@ public class EntityInitializer {
                 riskRepository.saveAll(risks);
                 log.info("Risk 초기화 완료");
 
-                // **7. Watch 생성**
-                List<Watch> watches = List.of(
-                                Watch.builder()
-                                                .uuid("watch-uuid-001")
-                                                .device("watch-device-001")
-                                                .currentLocation("null")
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-002")
-                                                .device("watch-device-002")
-                                                .currentLocation("null")
+                // // **7. Watch 생성**
+                // List<Watch> watches = List.of(
+                // Watch.builder()
+                // .uuid("watch-uuid-001")
+                // .device("watch-device-001")
+                // .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-002")
+                // .device("watch-device-002")
+                // .currentLocation("null")
 
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-003")
-                                                .device("watch-device-003")
-                                                .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-003")
+                // .device("watch-device-003")
+                // .currentLocation("null")
 
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-004")
-                                                .device("watch-device-004")
-                                                .currentLocation("null")
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-005")
-                                                .device("watch-device-005")
-                                                .currentLocation("null")
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-006")
-                                                .device("watch-device-006")
-                                                .currentLocation("null")
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-007")
-                                                .device("watch-device-007")
-                                                .currentLocation("null")
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-008")
-                                                .device("watch-device-008")
-                                                .currentLocation("null")
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-009")
-                                                .device("watch-device-009")
-                                                .currentLocation("null")
-                                                .build(),
-                                Watch.builder()
-                                                .uuid("watch-uuid-0010")
-                                                .device("watch-device-0010")
-                                                .currentLocation("null")
-                                                .build());
-                watchRepository.saveAll(watches);
-                log.info("Watch 초기화 완료");
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-004")
+                // .device("watch-device-004")
+                // .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-005")
+                // .device("watch-device-005")
+                // .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-006")
+                // .device("watch-device-006")
+                // .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-007")
+                // .device("watch-device-007")
+                // .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-008")
+                // .device("watch-device-008")
+                // .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-009")
+                // .device("watch-device-009")
+                // .currentLocation("null")
+                // .build(),
+                // Watch.builder()
+                // .uuid("watch-uuid-0010")
+                // .device("watch-device-0010")
+                // .currentLocation("null")
+                // .build());
+                // watchRepository.saveAll(watches);
+                // log.info("Watch 초기화 완료");
 
                 // **8. Patient 생성 (Watch, Sector, RiskGroup 연관)**
                 List<Patient> patients = List.of(
@@ -295,7 +295,7 @@ public class EntityInitializer {
                                                 .gender(Gender.MALE)
                                                 .minHeartRate(60)
                                                 .maxHeartRate(100)
-                                                .watch(watches.get(0))
+                                                // .watch(watches.get(0))
                                                 .sector(sectors.get(0))
                                                 .riskGroup(riskGroups.get(0))
                                                 .ward(wards.get(0))
@@ -306,7 +306,7 @@ public class EntityInitializer {
                                                 .gender(Gender.MALE)
                                                 .minHeartRate(55)
                                                 .maxHeartRate(95)
-                                                .watch(watches.get(1))
+                                                // .watch(watches.get(1))
                                                 .sector(sectors.get(0))
                                                 .riskGroup(riskGroups.get(1))
                                                 .ward(wards.get(0))
@@ -317,7 +317,7 @@ public class EntityInitializer {
                                                 .gender(Gender.FEMALE)
                                                 .minHeartRate(70)
                                                 .maxHeartRate(90)
-                                                .watch(watches.get(2))
+                                                // .watch(watches.get(2))
                                                 .sector(sectors.get(2))
                                                 .riskGroup(riskGroups.get(0))
                                                 .ward(wards.get(0))
@@ -328,7 +328,7 @@ public class EntityInitializer {
                                                 .gender(Gender.MALE)
                                                 .minHeartRate(80)
                                                 .maxHeartRate(110)
-                                                .watch(watches.get(3))
+                                                // .watch(watches.get(3))
                                                 .sector(sectors.get(0))
                                                 .riskGroup(riskGroups.get(2))
                                                 .ward(wards.get(0))
@@ -339,7 +339,7 @@ public class EntityInitializer {
                                                 .gender(Gender.FEMALE)
                                                 .minHeartRate(58)
                                                 .maxHeartRate(89)
-                                                .watch(watches.get(4))
+                                                // .watch(watches.get(4))
                                                 .sector(sectors.get(3))
                                                 .riskGroup(riskGroups.get(1))
                                                 .ward(wards.get(0))
@@ -350,7 +350,7 @@ public class EntityInitializer {
                                                 .gender(Gender.MALE)
                                                 .minHeartRate(60)
                                                 .maxHeartRate(80)
-                                                .watch(watches.get(5))
+                                                // .watch(watches.get(5))
                                                 .sector(sectors.get(1))
                                                 .riskGroup(riskGroups.get(2))
                                                 .ward(wards.get(0))
@@ -361,7 +361,7 @@ public class EntityInitializer {
                                                 .gender(Gender.FEMALE)
                                                 .minHeartRate(60)
                                                 .maxHeartRate(80)
-                                                .watch(watches.get(6))
+                                                // .watch(watches.get(6))
                                                 .sector(sectors.get(3))
                                                 .riskGroup(riskGroups.get(2))
                                                 .ward(wards.get(0))
@@ -442,7 +442,7 @@ public class EntityInitializer {
                                                                 "message", String.format("%s(%s)님 워치(ID : %s) 충전 필요",
                                                                                 patients.get(6).getName(),
                                                                                 patients.get(6).getSector().getName(),
-                                                                                patients.get(6).getWatch().getId()),
+                                                                                1L),
                                                                 "timestamp", kstTime.plusSeconds(1).format(formatter)))
                                                 .isRead(false)
                                                 .build(),
