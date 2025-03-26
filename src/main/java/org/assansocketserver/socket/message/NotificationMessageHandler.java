@@ -6,13 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.assansocketserver.domain.notification.dto.NotificationDTO;
 import org.assansocketserver.domain.notification.service.NotificationService;
+import org.assansocketserver.domain.patient.service.PatientSocketService;
 import org.assansocketserver.global.common.WebSocketMessage;
-import org.assansocketserver.mock.PatientScheduleService;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,26 +19,27 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class NotificationMessageHandler implements MessageHandler {
 
-    private final PatientScheduleService patientScheduleService;
+    private final PatientSocketService patientScheduleService;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
 
     private static final ConcurrentHashMap<String, WebSocketSession> CLIENT_SESSIONS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, SessionSender> SESSION_SENDERS = new ConcurrentHashMap<>();
 
     @Override
     public void handleMessage(WebSocketSession session, String cmd, String data) {
-        CLIENT_SESSIONS.put(session.getId(), session);
+        CLIENT_SESSIONS.putIfAbsent(session.getId(), session);
+        SESSION_SENDERS.putIfAbsent(session.getId(), new SessionSender(session, objectMapper));
+
         try {
             log.info("cmd: {}", cmd);
             log.info("data: {}", data);
 
             switch (cmd) {
                 case "ALL":
-                    // 전체 알림 목록 전송
                     sendAllUnreadNotifications(session);
                     break;
                 case "READ":
-                    // 알림 읽음 처리 후 갱신된 알림 목록 전송
                     NotificationDTO notificationDTO = objectMapper.readValue(data, NotificationDTO.class);
                     markNotificationAsRead(session, notificationDTO);
                     sendAllUnreadNotifications(session);
@@ -55,59 +54,49 @@ public class NotificationMessageHandler implements MessageHandler {
     }
 
     public void sendNewNotification(NotificationDTO notificationDTO) {
-        // 클라이언트 세션이 없으면 알림 전송 로직을 실행하지 않음
-        if (CLIENT_SESSIONS.isEmpty()) {
+        if (CLIENT_SESSIONS.isEmpty())
             return;
-        }
+
         WebSocketMessage<NotificationDTO> newNotification = WebSocketMessage.of(
                 "NOTIFICATION_NEW", notificationService.addNewNotification(notificationDTO));
-        CLIENT_SESSIONS.forEach((sessionId, session) -> sendMessage(session, newNotification));
-        CLIENT_SESSIONS.forEach((sessionId, session) -> sendAllUnreadNotifications(session));
-        CLIENT_SESSIONS.forEach((sessionId, session) -> sendMessage(session, patientScheduleService.getPatientList()));
+
+        CLIENT_SESSIONS.forEach((id, session) -> {
+            sendMessage(session, newNotification);
+            sendAllUnreadNotifications(session);
+            sendMessage(session, patientScheduleService.getPatientList());
+        });
     }
 
-    /**
-     * 모든 읽지 않은 알림 조회 (클라이언트 요청)
-     */
     private void sendAllUnreadNotifications(WebSocketSession session) {
         List<NotificationDTO> unreadNotifications = notificationService.getAllUnreadNotifications();
         sendMessage(session, WebSocketMessage.of("NOTIFICATION_ALL", unreadNotifications));
     }
 
-    /**
-     * 특정 알림 읽음 처리 (클라이언트 요청)
-     */
     private void markNotificationAsRead(WebSocketSession session, NotificationDTO notificationDTO) {
         if (notificationDTO.getId() == null) {
             sendErrorMessage(session, "notification_id가 필요합니다.");
             return;
         }
-        String notificationId = notificationDTO.getId();
-        boolean success = notificationService.markNotificationAsRead(notificationId);
+        boolean success = notificationService.markNotificationAsRead(notificationDTO.getId());
         if (!success) {
-            sendErrorMessage(session, "알림 읽음 처리 실패: " + notificationId);
+            sendErrorMessage(session, "알림 읽음 처리 실패: " + notificationDTO.getId());
         }
     }
 
-    /**
-     * WebSocket 메시지 전송
-     */
     private void sendMessage(WebSocketSession session, WebSocketMessage<?> message) {
-        try {
-            if (session.isOpen()) {
-                String jsonMessage = objectMapper.writeValueAsString(message);
-                session.sendMessage(new TextMessage(jsonMessage));
-            }
-        } catch (IOException e) {
-            log.error("메시지 전송 실패", e);
+        SessionSender sender = SESSION_SENDERS.get(session.getId());
+        if (sender != null) {
+            sender.send(message);
         }
     }
 
-    /**
-     * WebSocket 에러 메시지 전송
-     */
     private void sendErrorMessage(WebSocketSession session, String errorMessage) {
         WebSocketMessage<String> errorResponse = WebSocketMessage.of("ERROR", errorMessage);
         sendMessage(session, errorResponse);
+    }
+
+    public void removeSession(WebSocketSession session) {
+        CLIENT_SESSIONS.remove(session.getId());
+        SESSION_SENDERS.remove(session.getId());
     }
 }
