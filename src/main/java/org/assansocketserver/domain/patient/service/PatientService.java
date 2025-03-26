@@ -60,30 +60,10 @@ public class PatientService {
                                                         .gender(patient.getGender())
                                                         .sectorId(patient.getSector().getId())
                                                         .sectorName(patient.getSector().getName())
-                                                        .watchId(patient.getWatch().getId());
-
-                                        if (i == 0) {
-                                                builder.watchStatus(2) // 예시: 다른 값 적용
-                                                                .watchBattery(90) // 예시: 다른 값 적용
-                                                                .watchCharging(true); // 예시: 다른 값 적용
-                                        } else if (i == 1) {
-                                                builder.watchStatus(0) // 예시: 다른 값 적용
-                                                                .watchBattery(0) // 예시: 다른 값 적용
-                                                                .watchCharging(false); // 예시: 다른 값 적용
-                                        } else if (i == 2) {
-                                                builder.watchStatus(2) // 예시: 다른 값 적용
-                                                                .watchBattery(30) // 예시: 다른 값 적용
-                                                                .watchCharging(false); // 예시: 다른 값 적용
-                                        } else if (i == 5) {
-                                                builder.watchStatus(1) // 예시: 다른 값 적용
-                                                                .watchBattery(70) // 예시: 다른 값 적용
-                                                                .watchCharging(false); // 예시: 다른 값 적용
-                                        } else {
-                                                builder.watchStatus(2)
-                                                                .watchBattery(50)
-                                                                .watchCharging(true);
-                                        }
-
+                                                        .watchId(patient.getWatch().getId())
+                                                        .watchStatus(2) // 예시: 다른 값 적용
+                                                        .watchBattery(100) // 예시: 다른 값 적용
+                                                        .watchCharging(false);
                                         return builder.build();
                                 })
                                 .collect(Collectors.toList());
