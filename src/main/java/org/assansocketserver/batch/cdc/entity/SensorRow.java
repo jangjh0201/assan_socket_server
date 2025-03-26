@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder(access = AccessLevel.PRIVATE)
+@Builder
 public class SensorRow {
     private String timestamp;
     private Float accX;
@@ -21,8 +21,8 @@ public class SensorRow {
     private Integer lightValue;
 
     public static SensorRow of(String timestamp, Float accX, Float accY, Float accZ,
-                               Float barometerValue, Float gyroX, Float gyroY, Float gyroZ,
-                               Integer heartRateValue, Integer lightValue) {
+            Float barometerValue, Float gyroX, Float gyroY, Float gyroZ,
+            Integer heartRateValue, Integer lightValue) {
         return SensorRow.builder()
                 .timestamp(timestamp)
                 .accX(accX)
@@ -75,6 +75,5 @@ public class SensorRow {
                 .lightValue(sensorLight.getValue())
                 .build();
     }
-
 
 }
