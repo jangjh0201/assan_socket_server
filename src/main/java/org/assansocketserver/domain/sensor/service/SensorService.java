@@ -12,7 +12,6 @@ import org.assansocketserver.domain.sensor.mongorepository.accelerometer.SensorA
 import org.assansocketserver.domain.sensor.mongorepository.barometer.SensorBarometerRepository;
 import org.assansocketserver.domain.sensor.mongorepository.heartrate.SensorHeartRateRepository;
 import org.assansocketserver.domain.sensor.mongorepository.light.SensorLightRepository;
-import org.assansocketserver.domain.temp.notification.service.NotificationService;
 import org.assansocketserver.domain.watch.entity.Watch;
 import org.assansocketserver.domain.watch.repository.WatchRepository;
 import org.assansocketserver.global.error.exception.EntityNotFoundException;
