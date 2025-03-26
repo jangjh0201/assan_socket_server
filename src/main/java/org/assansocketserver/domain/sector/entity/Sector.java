@@ -49,7 +49,7 @@ public class Sector {
     @Builder.Default
     private SectorType sectorType = SectorType.PUBLIC;;
 
-    @OneToMany(mappedBy = "sector")
+    @OneToMany(mappedBy = "sector", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Beacon> beacons = new ArrayList<>();
 

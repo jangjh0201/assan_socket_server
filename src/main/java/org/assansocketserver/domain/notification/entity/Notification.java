@@ -21,7 +21,9 @@ public class Notification {
     private String id; // MongoDB의 기본 ID (ObjectId)
     private String category;
     private Map<String, Object> data;
-    private boolean isRead;
+
+    @Builder.Default
+    private boolean isRead = false;
 
     public void markAsRead() {
         this.isRead = true;
