@@ -95,4 +95,8 @@ public class Patient {
         Optional.ofNullable(patient.getWard()).ifPresent(ward -> this.ward = ward);
         Optional.ofNullable(patient.getRiskGroup()).ifPresent(riskGroup -> this.riskGroup = riskGroup);
     }
+
+    public Boolean isRiskGroup() {
+        return this.riskGroup != null;
+    }
 }
