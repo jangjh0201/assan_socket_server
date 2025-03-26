@@ -3,6 +3,10 @@ package org.assansocketserver.domain.sensor.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.assansocketserver.domain.notification.dto.NotificationDTO;
+import org.assansocketserver.domain.patient.entity.Patient;
+import org.assansocketserver.domain.risk.entity.Risk;
+import org.assansocketserver.domain.risk.entity.RiskType;
 import org.assansocketserver.domain.sensor.dto.request.*;
 import org.assansocketserver.domain.sensor.dto.response.*;
 import org.assansocketserver.domain.sensor.entity.*;
@@ -17,6 +21,7 @@ import org.assansocketserver.domain.watch.repository.WatchRepository;
 import org.assansocketserver.global.error.exception.EntityNotFoundException;
 import org.assansocketserver.socket.dto.MessageType;
 import org.assansocketserver.socket.dto.SocketBaseResponse;
+import org.assansocketserver.socket.message.NotificationMessageHandler;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,8 @@ import static org.assansocketserver.domain.sensor.entity.sensorType.Acceleromete
 import static org.assansocketserver.domain.sensor.entity.sensorType.HeartRate.createHeartRate;
 import static org.assansocketserver.global.error.ErrorCode.WATCH_UUID_NOT_FOUND;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +48,7 @@ public class SensorService {
     private final WatchRepository watchRepository;
     private final SimpMessageSendingOperations sendingOperations;
     private final RedisTemplate<String, Object> redisTemplate;
-    // private final NotificationService notificationService;
+    private final NotificationMessageHandler notificationMessageHandler;
 
     private Watch findByWatchOrThrow(Long id) {
         return watchRepository.findById(id)
@@ -85,37 +92,62 @@ public class SensorService {
     public void sendHeartRate(Map<String, Object> simpSessionAttributes,
             HeartRateRequestDto heartRateRequestDto) {
         Long watchId = getWatchIdFromSession(simpSessionAttributes);
-        Optional<Watch> watch = watchRepository.findById(watchId);
-        HeartRate heartRate = createHeartRate(heartRateRequestDto);
+        Optional<Watch> watchOptional = watchRepository.findWithPatientWardAndRisksById(watchId);
 
-        // 위치 측정
-        String currentLocation = watch.get().getCurrentLocation();
+        if (watchOptional.isEmpty()) {
+            throw new EntityNotFoundException(WATCH_UUID_NOT_FOUND);
+        }
+
+        Watch watch = watchOptional.get();
+        HeartRate heartRate = createHeartRate(heartRateRequestDto);
+        String currentLocation = watch.getCurrentLocation();
 
         createHeartRateAndSave(watchId, heartRateRequestDto);
 
         String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
 
-        if (watch.get().getPatient().getMaxHeartRate() < heartRate.getValue()) {
+        Patient patient = watch.getPatient();
 
-            // WebSocket 고심박 알림 to 프론트 구현 필요
+        // 위급상황 구분
+        final String riskType;
+        if (heartRate.getValue() == 0)
+            riskType = "워치 탈착";
+        else if (heartRate.getValue() > patient.getMaxHeartRate())
+            riskType = "고심박";
+        else if (heartRate.getValue() < patient.getMinHeartRate())
+            riskType = "저심박";
+        else
+            riskType = null;
 
-            // notificationService.createAndSaveNotification(watch.get(), currentLocation,
-            // "고심박");
-        } else if (watch.get().getPatient().getMinHeartRate() > heartRate.getValue()) {
+        Risk risk = patient.getWard().getRisks().stream()
+                .filter(r -> r.getRiskType().getName().equals(riskType))
+                .findFirst()
+                .orElse(null);
 
-            // WebSocket 저심박 알림 to 프론트 구현 필요
-
-            // notificationService.createAndSaveNotification(watch.get(), currentLocation,
-            // "저심박");
+        if (risk != null) {
+            NotificationDTO notificationDTO = NotificationDTO.builder()
+                    .category("risk")
+                    .data(Map.of(
+                            "risk_id", risk.getRiskType().getId(),
+                            "risk_name", risk.getRiskType().getName(),
+                            "severity", risk.getSeverity(),
+                            "patient_id", patient.getId(),
+                            "patient_name", patient.getName(),
+                            "sector_id", patient.getSector().getId(),
+                            "sector_name", patient.getSector().getName(),
+                            "message",
+                            String.format("%s(%s)님 %s 발생", patient.getName(), patient.getSector().getName(),
+                                    risk.getRiskType().getName()),
+                            "timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                    .build();
+            notificationMessageHandler.sendNewNotification(notificationDTO);
         }
 
         Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);
-
-        if (!Objects.isNull(sensorSendState)) {
+        if (sensorSendState != null) {
             sendingOperations.convertAndSend(destination,
                     SocketBaseResponse.of(MessageType.HEART_RATE, HeartRateResponseDto.of(heartRate)));
         }
-
     }
 
     public void sendLight(Map<String, Object> simpSessionAttributes,

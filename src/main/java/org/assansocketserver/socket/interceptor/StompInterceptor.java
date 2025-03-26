@@ -54,7 +54,7 @@ public class StompInterceptor implements ChannelInterceptor {
         if (StompCommand.SUBSCRIBE.equals(command)) {
             sensorScheduler.broadcastWatchList();
         }
-        
+
         if (StompCommand.CONNECT.equals(command)) {
             Long watchId = getWatchByAuthorizationHeader(accessor);
             setWatchIdFromStompHeader(accessor, watchId);
@@ -64,7 +64,6 @@ public class StompInterceptor implements ChannelInterceptor {
                 log.warn("Watch not found: {}", watchId);
             } else {
                 Watch watch = watchOptional.get();
-                // 환자 할당이 되어있지 않으면 센서 데이터 작업만 건너뛰고, 워치 활성화 및 위치 추적은 진행함
                 if (watch.getPatient() == null) {
                     log.warn("[UNASSIGNED]:: watchId : {}", watchId);
                 }
@@ -72,9 +71,7 @@ public class StompInterceptor implements ChannelInterceptor {
                 if (!watchId.equals(monitoringId)) {
                     createWatchLiveAndSave(watchId);
                     createPositionAndSave(watchId);
-                    if (watch.getPatient() != null) {
-                        createSensorDataAndSave(watchId, watch.getPatient().getName());
-                    }
+                    createSensorDataAndSave(watchId, watch.getPatient().getName());
                 }
             }
             log.info("[CONNECT]:: watchId : {}", watchId);

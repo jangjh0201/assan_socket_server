@@ -3,8 +3,8 @@ package org.assansocketserver.socket.message;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.assansocketserver.domain.patient.service.PatientSocketService;
 import org.assansocketserver.global.common.WebSocketMessage;
-import org.assansocketserver.mock.PatientScheduleService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class PatientMessageHandler implements MessageHandler {
 
     private final ObjectMapper objectMapper;
-    private final PatientScheduleService patientScheduleService;
+    private final PatientSocketService patientSocketService;
 
     // 단일 클라이언트 구독 태스크
     private ScheduledFuture<?> subscription;
@@ -64,11 +64,11 @@ public class PatientMessageHandler implements MessageHandler {
 
         subscription = scheduler.scheduleAtFixedRate(() -> {
             try {
-                sendMessage(session, patientScheduleService.getPatientList());
+                sendMessage(session, patientSocketService.getPatientList());
             } catch (Exception e) {
                 log.error("환자 정보 전송 중 에러 발생", e);
             }
-        }, 0, 15000, TimeUnit.MILLISECONDS);
+        }, 0, 10000, TimeUnit.MILLISECONDS);
 
         log.info("환자 정보 구독 시작");
     }
@@ -108,5 +108,4 @@ public class PatientMessageHandler implements MessageHandler {
         sendMessage(session, errorResponse);
     }
 
-    
 }
