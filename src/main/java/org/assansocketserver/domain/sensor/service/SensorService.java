@@ -136,8 +136,8 @@ public class SensorService {
                             "sector_id", patient.getSector().getId(),
                             "sector_name", patient.getSector().getName(),
                             "message",
-                            String.format("%s(%s)님 %s 발생", patient.getName(), patient.getSector().getName(),
-                                    risk.getRiskType().getName()),
+                            String.format("%s(%s)님 %s(%s) 발생", patient.getName(), patient.getSector().getName(),
+                                    risk.getRiskType().getName(), heartRate.getValue()),
                             "timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                     .build();
             notificationMessageHandler.sendNewNotification(notificationDTO);
