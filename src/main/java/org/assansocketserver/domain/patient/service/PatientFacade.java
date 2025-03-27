@@ -8,6 +8,8 @@ import org.assansocketserver.domain.patient.dto.PatientResponse;
 import org.assansocketserver.domain.patient.entity.Patient;
 import org.assansocketserver.domain.patient.enums.Gender;
 import org.assansocketserver.domain.patient.repository.PatientRepository;
+import org.assansocketserver.domain.riskgroup.dto.RiskGroupDTO;
+import org.assansocketserver.domain.riskgroup.entity.RiskGroup;
 import org.assansocketserver.domain.riskgroup.repository.RiskGroupRepository;
 import org.assansocketserver.domain.sector.dto.SectorDTO;
 import org.assansocketserver.domain.sector.entity.Sector;
@@ -43,15 +45,13 @@ public class PatientFacade {
                                 .id(patient.getId())
                                 .name(patient.getName())
                                 .number(patient.getNumber().toString())
-                                .Gender(patient.getGender().name())
+                                .gender(patient.getGender().name())
                                 .sectorId(patient.getSector().getId())
                                 .sectorName(patient.getSector().getName())
-                                .riskgroupId(patient.getRiskGroup() != null ? patient.getRiskGroup().getId() : null)
-                                .riskgroupName(patient.getRiskGroup() != null ? patient.getRiskGroup().getName() : null)
                                 .heartRateMin(patient.getMinHeartRate())
                                 .heartRateMax(patient.getMaxHeartRate())
                                 // noContact로 지정된 환자 id, name
-                                .noContact(patient.getNoContacts().stream()
+                                .noContacts(patient.getNoContacts().stream()
                                                 .map(noContact -> patientRepository
                                                                 .findById(noContact.getNoContactPatient().getId())
                                                                 .map(noContactPatient -> PatientDTO.builder()
@@ -60,12 +60,21 @@ public class PatientFacade {
                                                                                 .build()))
                                                 .map(Optional::get)
                                                 .collect(Collectors.toList()))
-                                .restrictedArea(patient.getRestrictedAreas().stream()
+                                .restrictedAreas(patient.getRestrictedAreas().stream()
                                                 .map(restrictedArea -> sectorRepository
                                                                 .findById(restrictedArea.getSector().getId())
                                                                 .map(sector -> SectorDTO.builder()
                                                                                 .id(sector.getId())
                                                                                 .name(sector.getName())
+                                                                                .build()))
+                                                .map(Optional::get)
+                                                .collect(Collectors.toList()))
+                                .highRiskGroups(patient.getHighRiskGroups().stream()
+                                                .map(highRiskGroup -> riskGroupRepository
+                                                                .findById(highRiskGroup.getRiskGroup().getId())
+                                                                .map(riskGroup -> RiskGroupDTO.builder()
+                                                                                .id(riskGroup.getId())
+                                                                                .name(riskGroup.getName())
                                                                                 .build()))
                                                 .map(Optional::get)
                                                 .collect(Collectors.toList()))
@@ -86,16 +95,11 @@ public class PatientFacade {
                                                 .orElseThrow(() -> new EntityNotFoundException("Watch not found")))
                                 .sector(sectorRepository.findByName(request.getSectorName())
                                                 .orElseThrow(() -> new EntityNotFoundException("Sector not found")))
-                                // riskGroup 없을 시(빈문자열) null로 처리
-                                .riskGroup(request.getRiskgroupId() == null ? null
-                                                : riskGroupRepository.findById(request.getRiskgroupId())
-                                                                .orElseThrow(() -> new EntityNotFoundException(
-                                                                                "RiskGroup not found")))
                                 .ward(ward)
                                 .build();
 
                 // NoContact 등록
-                List<PatientDTO> noContacts = request.getNoContact();
+                List<PatientDTO> noContacts = request.getNoContacts();
                 if (noContacts != null) {
                         for (PatientDTO noContact : noContacts) {
                                 Long noContactId = noContact.getId();
@@ -107,7 +111,7 @@ public class PatientFacade {
                 }
 
                 // RestrictedArea 등록
-                List<SectorDTO> restrictedAreas = request.getRestrictedArea();
+                List<SectorDTO> restrictedAreas = request.getRestrictedAreas();
                 if (restrictedAreas != null) {
                         for (SectorDTO restrictedArea : restrictedAreas) {
                                 Long restrictedAreaId = restrictedArea.getId();
@@ -117,6 +121,19 @@ public class PatientFacade {
                                 }
                         }
                 }
+
+                // RiskGroup 등록
+                List<RiskGroupDTO> highRiskGroups = request.getRiskGroups();
+                if (highRiskGroups != null) {
+                        for (RiskGroupDTO highRiskGroup : highRiskGroups) {
+                                Long highRiskGroupId = highRiskGroup.getId();
+                                Optional<RiskGroup> optionalRiskGroup = riskGroupRepository.findById(highRiskGroupId);
+                                if (optionalRiskGroup.isPresent()) {
+                                        patient.addHighRiskGroup(optionalRiskGroup.get());
+                                }
+                        }
+                }
+
                 patientRepository.save(patient);
         }
 
@@ -129,9 +146,10 @@ public class PatientFacade {
                 // 기존 연관관계 제거
                 patient.removeNoContacts();
                 patient.removeRestrictedAreas();
+                patient.removeHighRiskGroups();
 
                 // patient 객체를 기준으로 연관관계 추가
-                List<PatientDTO> noContacts = request.getNoContact();
+                List<PatientDTO> noContacts = request.getNoContacts();
                 if (noContacts != null) {
                         for (PatientDTO noContact : noContacts) {
                                 Long noContactId = noContact.getId();
@@ -144,7 +162,7 @@ public class PatientFacade {
                         patient.removeNoContacts();
                 }
 
-                List<SectorDTO> restrictedAreas = request.getRestrictedArea();
+                List<SectorDTO> restrictedAreas = request.getRestrictedAreas();
                 if (restrictedAreas != null) {
                         for (SectorDTO restrictedArea : restrictedAreas) {
                                 Long restrictedAreaId = restrictedArea.getId();
@@ -155,6 +173,19 @@ public class PatientFacade {
                         }
                 } else {
                         patient.removeRestrictedAreas();
+                }
+
+                List<RiskGroupDTO> highRiskGroups = request.getRiskGroups();
+                if (highRiskGroups != null) {
+                        for (RiskGroupDTO highRiskGroup : highRiskGroups) {
+                                Long highRiskGroupId = highRiskGroup.getId();
+                                Optional<RiskGroup> optionalRiskGroup = riskGroupRepository.findById(highRiskGroupId);
+                                if (optionalRiskGroup.isPresent()) {
+                                        patient.addHighRiskGroup(optionalRiskGroup.get());
+                                }
+                        }
+                } else {
+                        patient.removeHighRiskGroups();
                 }
 
                 // 그 외 업데이트
@@ -169,11 +200,6 @@ public class PatientFacade {
                                 // 추후 getId로 가져오는 방식으로 변경
                                 .sector(sectorRepository.findByName(request.getSectorName())
                                                 .orElseThrow(() -> new EntityNotFoundException("Sector not found")))
-                                // 추후 getId로 가져오는 방식으로 변경
-                                .riskGroup(request.getRiskgroupName() == null ? null
-                                                : riskGroupRepository.findByName(request.getRiskgroupName())
-                                                                .orElseThrow(() -> new EntityNotFoundException(
-                                                                                "RiskGroup not found")))
                                 .build());
         }
 }

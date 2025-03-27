@@ -48,7 +48,6 @@ public class UserFacade {
 
     public RiskGroupDTO createRiskGroups(Ward ward, RiskGroupDTO request) {
         return riskGroupService.createRiskGroups(ward, request);
-
     }
 
     public void deleteRiskGroups(Ward ward, RiskGroupDTO request) {

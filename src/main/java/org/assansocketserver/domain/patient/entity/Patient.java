@@ -52,9 +52,9 @@ public class Patient {
     @JoinColumn(name = "ward_id")
     private Ward ward;
 
-    @ManyToOne
-    @JoinColumn(name = "risk_group_id")
-    private RiskGroup riskGroup;
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<HighRiskGroup> highRiskGroups = new ArrayList<>();
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -72,6 +72,10 @@ public class Patient {
         this.noContacts.add(NoContact.of(this, patient));
     }
 
+    public void addHighRiskGroup(RiskGroup riskGroup) {
+        this.highRiskGroups.add(HighRiskGroup.of(this, riskGroup));
+    }
+
     public void removeRestrictedAreas() {
         this.restrictedAreas.clear();
     }
@@ -80,8 +84,8 @@ public class Patient {
         this.noContacts.clear();
     }
 
-    public void removeRiskGroup() {
-        this.riskGroup = null;
+    public void removeHighRiskGroups() {
+        this.highRiskGroups.clear();
     }
 
     public void update(Patient patient) {
@@ -93,10 +97,9 @@ public class Patient {
         Optional.ofNullable(patient.getWatch()).ifPresent(watch -> this.watch = watch);
         Optional.ofNullable(patient.getSector()).ifPresent(sector -> this.sector = sector);
         Optional.ofNullable(patient.getWard()).ifPresent(ward -> this.ward = ward);
-        Optional.ofNullable(patient.getRiskGroup()).ifPresent(riskGroup -> this.riskGroup = riskGroup);
     }
 
     public Boolean isRiskGroup() {
-        return this.riskGroup != null;
+        return !this.highRiskGroups.isEmpty();
     }
 }

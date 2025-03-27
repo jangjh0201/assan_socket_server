@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import org.assansocketserver.domain.riskgroup.dto.RiskGroupDTO;
 import org.assansocketserver.domain.sector.dto.SectorDTO;
 
 @Getter
@@ -30,7 +31,7 @@ public class PatientResponse {
     private String number;
 
     @JsonProperty("patient_gender")
-    private String Gender;
+    private String gender;
 
     @JsonProperty("patient_room_id")
     private Long sectorId;
@@ -38,23 +39,20 @@ public class PatientResponse {
     @JsonProperty("patient_room_name")
     private String sectorName;
 
-    @JsonProperty("riskgroup_id")
-    private Long riskgroupId;
-
-    @JsonProperty("riskgroup_name")
-    private String riskgroupName;
-
     @JsonProperty("heart_rate_min")
     private int heartRateMin;
 
     @JsonProperty("heart_rate_max")
     private int heartRateMax;
 
+    @JsonProperty("riskgroups")
+    private List<RiskGroupDTO> highRiskGroups;
+
     @JsonProperty("no_contact")
-    private List<PatientDTO> noContact;
+    private List<PatientDTO> noContacts;
 
     @JsonProperty("restricted_area")
-    private List<SectorDTO> restrictedArea;
+    private List<SectorDTO> restrictedAreas;
 
     @JsonProperty("watch_id")
     private Long watchId;

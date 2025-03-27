@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.assansocketserver.domain.patient.repository.PatientRepository;
 import org.assansocketserver.domain.riskgroup.dto.RiskGroupDTO;
 import org.assansocketserver.domain.riskgroup.entity.RiskGroup;
 import org.assansocketserver.domain.riskgroup.repository.RiskGroupRepository;
@@ -18,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class RiskGroupService {
         private final RiskGroupRepository riskGroupRepository;
-        private final PatientRepository patientRepository;
 
         /**
          * RiskGroup 목록 조회
@@ -56,13 +54,14 @@ public class RiskGroupService {
         }
 
         public void deleteRiskGroups(Ward ward, RiskGroupDTO request) {
-                RiskGroup riskGroup = riskGroupRepository.findById(request.getId())
-                                .orElseThrow(() -> new IllegalArgumentException("해당 RiskGroup이 존재하지 않습니다."));
-                patientRepository.findByRiskGroup(riskGroup).forEach(patient -> {
-                        patient.removeRiskGroup();
-                        patientRepository.save(patient);
-                });
-                riskGroupRepository.delete(riskGroup);
+                List<RiskGroup> riskGroups = riskGroupRepository.findByWard(ward);
+
+                for (RiskGroup riskGroup : riskGroups) {
+                        if (riskGroup.getId().equals(request.getId())) {
+                                riskGroupRepository.delete(riskGroup);
+                                return;
+                        }
+                }
         }
 
         public List<RiskGroupDTO> getRiskGroupsInfo(Ward ward) {

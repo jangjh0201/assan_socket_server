@@ -3,7 +3,6 @@ package org.assansocketserver.domain.patient.repository;
 import java.util.List;
 
 import org.assansocketserver.domain.patient.entity.Patient;
-import org.assansocketserver.domain.riskgroup.entity.RiskGroup;
 import org.assansocketserver.domain.ward.entity.Ward;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -21,5 +20,4 @@ public interface PatientRepository extends JpaRepository<Patient, Long>, JpaSpec
 
     List<Patient> findAllByWardAndNameContaining(Ward ward, String name);
 
-    List<Patient> findByRiskGroup(RiskGroup riskGroup);
 }
