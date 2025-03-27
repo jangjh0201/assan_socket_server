@@ -10,6 +10,8 @@ import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.annotation.PreDestroy;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -28,6 +30,12 @@ public class PatientMessageHandler implements MessageHandler {
 
     // 주기적으로 태스크를 실행할 스케줄러 (필요에 따라 스레드 풀 사이즈 조정 가능)
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    @PreDestroy
+    public void shutdownScheduler() {
+        System.out.println("PatientMessageHandler scheduler shutdown");
+        scheduler.shutdownNow();
+    }
 
     @Override
     public void handleMessage(WebSocketSession session, String cmd, String data) {
