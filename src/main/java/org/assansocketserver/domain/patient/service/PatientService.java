@@ -7,6 +7,8 @@ import org.assansocketserver.domain.patient.entity.Patient;
 import org.assansocketserver.domain.patient.repository.PatientRepository;
 import org.assansocketserver.domain.patient.repository.PatientSpecification;
 import org.assansocketserver.domain.ward.entity.Ward;
+import org.assansocketserver.domain.watch.repository.WatchLiveRepository;
+import org.assansocketserver.domain.watch.service.WatchService;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -15,12 +17,12 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @RequiredArgsConstructor
 @Service
 public class PatientService {
 
+        private final WatchService watchService;
         private final PatientRepository patientRepository;
         private final PatientFacade patientFacade;
 
@@ -50,21 +52,23 @@ public class PatientService {
                 // 조건과 Pageable을 적용하여 환자 목록 조회
                 Page<Patient> patientsPage = patientRepository.findAll(spec, pageable);
 
-                List<PatientDTO> patientList = IntStream.range(0, patientsPage.getContent().size())
-                                .mapToObj(i -> {
-                                        Patient patient = patientsPage.getContent().get(i);
-                                        PatientDTO.PatientDTOBuilder builder = PatientDTO.builder()
+                List<PatientDTO> patientList = patientsPage.getContent().stream()
+                                .map(patient -> {
+                                        Long watchId = patient.getWatch().getId();
+                                        Integer status = watchService.getWatchStatus(watchId);
+
+                                        return PatientDTO.builder()
                                                         .id(patient.getId())
                                                         .number(patient.getNumber())
                                                         .name(patient.getName())
                                                         .gender(patient.getGender())
                                                         .sectorId(patient.getSector().getId())
                                                         .sectorName(patient.getSector().getName())
-                                                        .watchId(patient.getWatch().getId())
-                                                        .watchStatus(2) // 예시: 다른 값 적용
-                                                        .watchBattery(100) // 예시: 다른 값 적용
-                                                        .watchCharging(false);
-                                        return builder.build();
+                                                        .watchId(watchId)
+                                                        .watchStatus(status)
+                                                        .watchBattery(100)
+                                                        .watchCharging(false)
+                                                        .build();
                                 })
                                 .collect(Collectors.toList());
 
@@ -97,19 +101,24 @@ public class PatientService {
         public List<PatientDTO> getAllPatients() {
                 List<Patient> patients = patientRepository.findAll();
                 return patients.stream()
-                                .map(patient -> PatientDTO.builder()
-                                                .id(patient.getId())
-                                                .number(patient.getNumber())
-                                                .name(patient.getName())
-                                                .sectorId(patient.getSector().getId())
-                                                .sectorName(patient.getSector().getName())
-                                                /**
-                                                 * watchStatus, watchBattery, watchCharging은 임의로 설정
-                                                 */
-                                                .watchStatus(0)
-                                                .watchBattery(90)
-                                                .watchCharging(false)
-                                                .build())
+                                .map(patient -> {
+                                        Long watchId = patient.getWatch().getId();
+                                        Integer status = watchService.getWatchStatus(watchId);
+
+                                        return PatientDTO.builder()
+                                                        .id(patient.getId())
+                                                        .number(patient.getNumber())
+                                                        .name(patient.getName())
+                                                        .sectorId(patient.getSector().getId())
+                                                        .sectorName(patient.getSector().getName())
+                                                        /**
+                                                         * watchStatus, watchBattery, watchCharging은 임의로 설정
+                                                         */
+                                                        .watchStatus(status)
+                                                        .watchBattery(90)
+                                                        .watchCharging(false)
+                                                        .build();
+                                })
                                 .collect(Collectors.toList());
         }
 

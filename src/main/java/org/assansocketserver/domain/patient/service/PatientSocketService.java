@@ -1,16 +1,14 @@
 package org.assansocketserver.domain.patient.service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.assansocketserver.domain.patient.dto.PatientSocketDTO;
 import org.assansocketserver.domain.patient.entity.Patient;
 import org.assansocketserver.domain.patient.repository.PatientRepository;
 import org.assansocketserver.domain.sector.repository.SectorRepository;
 import org.assansocketserver.domain.watch.dto.WatchInfoDTO;
+import org.assansocketserver.domain.watch.service.WatchService;
 import org.assansocketserver.global.common.WebSocketMessage;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 public class PatientSocketService {
 
+    private final WatchService watchService;
     private final PatientRepository patientRepository;
     private final SectorRepository sectorRepository;
 
@@ -28,9 +27,11 @@ public class PatientSocketService {
 
         List<PatientSocketDTO> patientList = patients.stream().map(patient -> {
             Long wardId = patient.getWard().getId();
-
-            // 만약 할당된 watch가 없다면 currentLocationId를 null로 설정
             Long locationId = null;
+
+            Long watchId = patient.getWatch() != null ? patient.getWatch().getId() : null;
+            Integer status = watchService.getWatchStatus(watchId);
+
             if (patient.getWatch() != null) {
                 String currentLocation = patient.getWatch().getCurrentLocation();
                 locationId = getCurrentLocationId(wardId, currentLocation);
@@ -42,7 +43,7 @@ public class PatientSocketService {
                     .number(patient.getNumber())
                     .sectorName(patient.getSector().getName())
                     .currentLocationId(locationId)
-                    .watchStatus(2)
+                    .watchStatus(status)
                     .watchBattery(100)
                     .watchCharging(false)
                     .riskGroup(patient.isRiskGroup())
@@ -50,8 +51,7 @@ public class PatientSocketService {
                     .build();
         }).collect(Collectors.toList());
 
-        WebSocketMessage<List<PatientSocketDTO>> message = WebSocketMessage.of("PATIENT_ALL", patientList);
-        return message;
+        return WebSocketMessage.of("PATIENT_ALL", patientList);
     }
 
     private Long getCurrentLocationId(Long wardId, String sectorName) {
