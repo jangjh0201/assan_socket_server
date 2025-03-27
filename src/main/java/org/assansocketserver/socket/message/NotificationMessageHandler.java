@@ -25,6 +25,7 @@ public class NotificationMessageHandler implements MessageHandler {
 
     private static final ConcurrentHashMap<String, WebSocketSession> CLIENT_SESSIONS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, SessionSender> SESSION_SENDERS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Boolean> SESSION_INITIALIZED = new ConcurrentHashMap<>();
 
     @Override
     public void handleMessage(WebSocketSession session, String cmd, String data) {
@@ -61,8 +62,12 @@ public class NotificationMessageHandler implements MessageHandler {
                 "NOTIFICATION_NEW", notificationService.addNewNotification(notificationDTO));
 
         CLIENT_SESSIONS.forEach((id, session) -> {
+            if (!Boolean.TRUE.equals(SESSION_INITIALIZED.get(id))) {
+                log.info("세션 {} 은 아직 초기화되지 않았습니다. 알림 전송 생략", id);
+                return;
+            }
             sendMessage(session, newNotification);
-            sendAllUnreadNotifications(session);
+            sendAllUnreadNotifications(session); // 최신 읽지 않은 알림도 같이 보냄
             sendMessage(session, patientScheduleService.getPatientList());
         });
     }
@@ -70,6 +75,7 @@ public class NotificationMessageHandler implements MessageHandler {
     private void sendAllUnreadNotifications(WebSocketSession session) {
         List<NotificationDTO> unreadNotifications = notificationService.getAllUnreadNotifications();
         sendMessage(session, WebSocketMessage.of("NOTIFICATION_ALL", unreadNotifications));
+        SESSION_INITIALIZED.put(session.getId(), true); // 최초 초기화 완료 표시
     }
 
     private void markNotificationAsRead(WebSocketSession session, NotificationDTO notificationDTO) {
@@ -98,5 +104,6 @@ public class NotificationMessageHandler implements MessageHandler {
     public void removeSession(WebSocketSession session) {
         CLIENT_SESSIONS.remove(session.getId());
         SESSION_SENDERS.remove(session.getId());
+        SESSION_INITIALIZED.remove(session.getId());
     }
 }

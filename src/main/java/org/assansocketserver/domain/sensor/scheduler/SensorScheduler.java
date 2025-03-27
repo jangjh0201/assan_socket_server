@@ -39,7 +39,7 @@ public class SensorScheduler {
                 SocketBaseResponse.of(MessageType.DIS_WATCH, responseDto));
     }
 
-    private List<WatchLiveResponseDto> findAllWatch() {
+    public List<WatchLiveResponseDto> findAllWatch() {
         List<WatchLive> watchLiveList = findAllWatchInRedis();
         return WatchLiveResponseDto.liveListOf(watchLiveList);
     }
