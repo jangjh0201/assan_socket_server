@@ -36,14 +36,30 @@ public class SessionSender {
 
     private void processQueue() {
         try {
-            while (session.isOpen()) {
+            while (true) {
                 String json = messageQueue.take();
-                synchronized (session) {
-                    session.sendMessage(new TextMessage(json));
+                try {
+                    synchronized (session) {
+                        if (session.isOpen()) {
+                            session.sendMessage(new TextMessage(json));
+                        } else {
+                            log.warn("세션이 이미 닫혀 있어 메시지 전송 생략: {}", session.getId());
+                            break; // 반복문 종료
+                        }
+                    }
+                } catch (IllegalStateException e) {
+                    log.warn("세션 상태 오류로 메시지 전송 실패: {}", session.getId(), e);
+                    break; // 세션이 닫혔으므로 루프 종료
+                } catch (Exception e) {
+                    log.error("메시지 전송 중 예외 발생: {}", session.getId(), e);
                 }
             }
-        } catch (Exception e) {
-            log.warn("세션 전송 종료: {}", session.getId(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // 인터럽트 상태 복구
+            log.warn("메시지 큐 처리 스레드 인터럽트", e);
+        } finally {
+            log.warn("세션 전송 종료: {}", session.getId());
         }
     }
+
 }
