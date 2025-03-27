@@ -72,7 +72,7 @@ public class PatientMessageHandler implements MessageHandler {
 
         subscription = scheduler.scheduleAtFixedRate(() -> {
             try {
-                sendMessage(session, patientSocketService.getPatientList());
+                sendMessage(session, patientSocketService.getPatientList(false));
             } catch (Exception e) {
                 log.error("환자 정보 전송 중 에러 발생", e);
             }

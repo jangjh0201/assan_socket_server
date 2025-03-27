@@ -68,7 +68,11 @@ public class NotificationMessageHandler implements MessageHandler {
             }
             sendMessage(session, newNotification);
             sendAllUnreadNotifications(session); // 최신 읽지 않은 알림도 같이 보냄
-            sendMessage(session, patientScheduleService.getPatientList());
+            Boolean isRisk = false;
+            if (newNotification.getData().getContent().getCategory().equals("risk")) {
+                isRisk = true;
+            }
+            sendMessage(session, patientScheduleService.getPatientList(isRisk));
         });
     }
 
