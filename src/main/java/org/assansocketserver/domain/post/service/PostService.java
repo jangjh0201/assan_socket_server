@@ -8,10 +8,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.assansocketserver.auth.entity.Account;
+import org.assansocketserver.domain.notification.dto.NotificationDTO;
+import org.assansocketserver.domain.patient.service.PatientSocketService;
 import org.assansocketserver.domain.post.dto.PostRequest;
 import org.assansocketserver.domain.post.dto.PostResponse;
 import org.assansocketserver.domain.post.entity.Post;
 import org.assansocketserver.domain.post.repository.PostRepository;
+import org.assansocketserver.socket.message.NotificationMessageHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class PostService {
 
         private final PostRepository postRepository;
+        private final NotificationMessageHandler notificationMessageHandler;
 
         @Transactional(readOnly = true)
         public Map<String, Object> getPosts(int pageNo) {
@@ -67,13 +71,17 @@ public class PostService {
 
         @Transactional
         public void createPost(Account account, PostRequest request) {
-
-                postRepository.save(Post.builder()
+                Post post = postRepository.save(Post.builder()
                                 .title(request.getTitle())
                                 .content(request.getContent())
                                 .account(account)
                                 .createdAt(LocalDateTime.now())
+                                .notification(request.getNotification())
                                 .build());
+
+                if (post.getNotification()) {
+                        sendPostNotification(post);
+                }
         }
 
         @Transactional
@@ -81,7 +89,11 @@ public class PostService {
                 Post post = postRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + id));
 
-                post.update(request.getTitle(), request.getContent());
+                post.update(request.getTitle(), request.getContent(), request.getNotification());
+
+                if (post.getNotification()) {
+                        sendPostNotification(post);
+                }
         }
 
         @Transactional
@@ -89,4 +101,20 @@ public class PostService {
                 postRepository.deleteById(id);
         }
 
+        private void sendPostNotification(Post post) {
+                NotificationDTO notificationDTO = NotificationDTO.builder()
+                                .category("notice")
+                                .data(Map.of(
+                                                "notice_id", post.getId(),
+                                                "notice_title", post.getTitle(),
+                                                "notice_author", post.getAccount().getName(),
+                                                "message",
+                                                String.format("%s by %s", post.getTitle(),
+                                                                post.getAccount().getName()),
+                                                "timestamp",
+                                                LocalDateTime.now()
+                                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                                .build();
+                notificationMessageHandler.sendNewNotification(notificationDTO);
+        }
 }

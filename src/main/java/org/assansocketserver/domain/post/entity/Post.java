@@ -26,6 +26,8 @@ public class Post {
 
     private String content;
 
+    private Boolean notification;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -34,8 +36,9 @@ public class Post {
     @JoinColumn(name = "account_id")
     private Account account;
 
-    public void update(String title, String content) {
+    public void update(String title, String content, Boolean notification) {
         this.title = title;
         this.content = content;
+        this.notification = notification;
     }
 }
