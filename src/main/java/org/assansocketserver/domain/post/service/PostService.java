@@ -91,7 +91,7 @@ public class PostService {
 
                 post.update(request.getTitle(), request.getContent(), request.getNotification());
 
-                if (post.getNotification()) {
+                if (request.getNotification()) {
                         sendPostNotification(post);
                 }
         }
