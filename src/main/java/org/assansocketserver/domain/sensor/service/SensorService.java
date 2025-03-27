@@ -120,7 +120,7 @@ public class SensorService {
             riskType = null;
 
         Risk risk = patient.getWard().getRisks().stream()
-                .filter(r -> r.getRiskType().getName().equals(riskType))
+                .filter(r -> r.getRiskType().getName().equals(riskType) && r.getAvailability() != false)
                 .findFirst()
                 .orElse(null);
 
