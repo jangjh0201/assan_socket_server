@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.index.Indexed;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @Getter
-@RedisHash(value = "watch")
+@RedisHash(value = "watch", timeToLive = 100)
 public class WatchLive {
     @Id
     private Long id;

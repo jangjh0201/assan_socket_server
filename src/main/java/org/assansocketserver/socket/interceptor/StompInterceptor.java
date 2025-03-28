@@ -18,6 +18,7 @@ import org.assansocketserver.socket.error.SocketUnauthorizedException;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import static org.assansocketserver.socket.error.SocketErrorCode.*;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +46,7 @@ public class StompInterceptor implements ChannelInterceptor {
     private final WatchLiveRepository watchLiveRepository;
     private final SensorScheduler sensorScheduler;
     private final CacheManager cacheManager;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -52,6 +55,10 @@ public class StompInterceptor implements ChannelInterceptor {
         // log.info("[command]:: watchId : " + command);
 
         if (StompCommand.SUBSCRIBE.equals(command)) {
+            Long watchId = (Long) getWatchIdFromStompHeader(accessor);
+            if (watchId != null && !watchId.equals(monitoringId)) {
+                createWatchLiveAndSave(watchId); // TTL 갱신을 위해 다시 save()
+            }
             sensorScheduler.broadcastWatchList();
         }
 
@@ -143,8 +150,16 @@ public class StompInterceptor implements ChannelInterceptor {
     }
 
     private void createWatchLiveAndSave(Long watchId) {
-        WatchLive watchLive = WatchLive.createWatchLive(watchId);
-        watchLiveRepository.save(watchLive);
+        Optional<WatchLive> existing = watchLiveRepository.findById(watchId);
+
+        if (existing.isPresent()) {
+            // 기존 객체라면 TTL만 갱신
+            redisTemplate.expire("watch:" + watchId, Duration.ofSeconds(50)); // TTL은 설정한 값으로
+        } else {
+            // 처음이면 새로 저장
+            WatchLive watchLive = WatchLive.createWatchLive(watchId);
+            watchLiveRepository.save(watchLive);
+        }
     }
 
     private void createSensorDataAndSave(Long watchId, String watchName) {

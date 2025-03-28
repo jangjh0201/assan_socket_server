@@ -8,6 +8,7 @@ import org.assansocketserver.domain.position.dto.response.PositionResponseDto;
 import org.assansocketserver.domain.position.service.PositionService;
 import org.assansocketserver.socket.dto.MessageType;
 import org.assansocketserver.socket.dto.SocketBaseResponse;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import java.time.Duration;
 import java.util.Map;
 
 @Slf4j
@@ -25,15 +27,28 @@ import java.util.Map;
 public class PositionMessageController {
     private final PositionService positionService;
     private final SimpMessageSendingOperations sendingOperations;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Operation(summary = "워치의 센서 데이터 전송", description = "워치에서 전송한 가속도계 데이터를 받아 처리하고, 처리된 위치 데이터를 WebSocket을 통해 반환합니다.")
     @MessageMapping("/position")
     public void sendAccelerometer(
             @Header("simpSessionAttributes") Map<String, Object> simpSessionAttributes,
             @Payload final PosDataDTO request) throws Exception {
-        String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
+        Object watchIdObj = simpSessionAttributes.get("watchId");
+        if (watchIdObj != null) {
+            Long watchId = Long.parseLong(watchIdObj.toString());
+            refreshWatchLiveTtl(watchId);
+        }
+
+        String destination = "/queue/sensor/" + watchIdObj;
 
         PositionResponseDto responseDto = positionService.receiveData(request, destination);
         sendingOperations.convertAndSend(destination, SocketBaseResponse.of(MessageType.POSITION, responseDto));
     }
+
+    private void refreshWatchLiveTtl(Long watchId) {
+        String redisKey = "watch:" + watchId;
+        redisTemplate.expire(redisKey, Duration.ofSeconds(100)); // TTL 연장
+    }
+    
 }
