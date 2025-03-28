@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class NotificationMessageHandler implements MessageHandler {
 
-    private final PatientSocketService patientScheduleService;
+    private final PatientSocketService patientSocketService;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
 
@@ -72,7 +72,7 @@ public class NotificationMessageHandler implements MessageHandler {
             if (newNotification.getData().getContent().getCategory().equals("risk")) {
                 isRisk = true;
             }
-            sendMessage(session, patientScheduleService.getPatientList(isRisk));
+            sendMessage(session, patientSocketService.getPatientList(isRisk));
         });
     }
 

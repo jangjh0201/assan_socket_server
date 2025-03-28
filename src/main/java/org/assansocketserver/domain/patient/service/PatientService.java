@@ -9,6 +9,7 @@ import org.assansocketserver.domain.patient.repository.PatientSpecification;
 import org.assansocketserver.domain.ward.entity.Ward;
 import org.assansocketserver.domain.watch.repository.WatchLiveRepository;
 import org.assansocketserver.domain.watch.service.WatchService;
+import org.assansocketserver.socket.message.NotificationMessageHandler;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class PatientService {
         private final WatchService watchService;
         private final PatientRepository patientRepository;
         private final PatientFacade patientFacade;
+        private final NotificationMessageHandler notificationMessageHandler;
 
         /**
          * 환자 목록 조회 (Specification 활용)
@@ -115,8 +117,8 @@ public class PatientService {
                                                          * watchStatus, watchBattery, watchCharging은 임의로 설정
                                                          */
                                                         .watchStatus(status)
-                                                        .watchBattery(90)
-                                                        .watchCharging(false)
+                                                        .watchBattery(100)
+                                                        .watchCharging(true)
                                                         .build();
                                 })
                                 .collect(Collectors.toList());

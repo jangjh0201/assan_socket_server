@@ -14,6 +14,7 @@ import org.assansocketserver.domain.watch.dto.WatchInfoDTO;
 import org.assansocketserver.domain.watch.service.WatchService;
 import org.assansocketserver.global.common.WebSocketMessage;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +27,7 @@ public class PatientSocketService {
     private final SectorRepository sectorRepository;
     private final SleepService sleepService;
 
-
+    @Transactional(readOnly = true)
     public WebSocketMessage<List<PatientSocketDTO>> getPatientList(Boolean isRisk) {
         List<Patient> patients = patientRepository.findAll();
 
