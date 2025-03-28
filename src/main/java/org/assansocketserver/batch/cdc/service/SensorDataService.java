@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 @Service
 public class SensorDataService {
 
@@ -33,7 +34,8 @@ public class SensorDataService {
         List<SensorAccelerometer> accelerometerDataList = findAllAccelerometerDataForWatch(selectedSensorData, today);
         System.out.println("accelerometerDataList = " + accelerometerDataList);
         for (SensorAccelerometer accelerometerData : accelerometerDataList) {
-            System.out.println("accelerometerData.getId() = " + accelerometerData.getId());
+            // System.out.println("accelerometerData.getId() = " +
+            // accelerometerData.getId());
             long timestamp = accelerometerData.getTimestamp();
 
             SensorBarometer barometer = getSensorEntityWithinTolerance(SensorBarometer.class, timestamp);
@@ -58,26 +60,29 @@ public class SensorDataService {
                     gyroY,
                     gyroZ,
                     heartRateValue,
-                    lightValue
-            );
+                    lightValue);
 
             sensorRowList.add(sensorRow);
 
             // 각 센서 데이터 엔티티 삭제
             deleteSensorData(SensorAccelerometer.class, accelerometerData.getId());
-            if (barometer != null) deleteSensorData(SensorBarometer.class, barometer.getId());
-            if (gyroscope != null) deleteSensorData(SensorGyroscope.class, gyroscope.getId());
-            if (heartRate != null) deleteSensorData(SensorHeartRate.class, heartRate.getId());
-            if (light != null) deleteSensorData(SensorLight.class, light.getId());
+            if (barometer != null)
+                deleteSensorData(SensorBarometer.class, barometer.getId());
+            if (gyroscope != null)
+                deleteSensorData(SensorGyroscope.class, gyroscope.getId());
+            if (heartRate != null)
+                deleteSensorData(SensorHeartRate.class, heartRate.getId());
+            if (light != null)
+                deleteSensorData(SensorLight.class, light.getId());
         }
-
 
         SensorData sensorData = sensorDataRepository.findByWatchIdAndDate(selectedSensorData.getWatchId(), today)
                 .orElse(null);
 
-        if(sensorData != null) {
+        if (sensorData != null) {
             sensorData.updateDate(today);
-            sensorData.getSensorRowList().addAll(sensorRowList);}
+            sensorData.getSensorRowList().addAll(sensorRowList);
+        }
         return sensorData;
     }
 
@@ -89,8 +94,7 @@ public class SensorDataService {
     private List<SensorAccelerometer> findAllAccelerometerDataForWatch(SensorData sensorData, LocalDate date) {
         return mongoTemplate.find(
                 Query.query(Criteria.where("watchId").is(sensorData.getWatchId()).and("date").is(date)),
-                SensorAccelerometer.class
-        );
+                SensorAccelerometer.class);
     }
 
     private <T> T getSensorEntityWithinTolerance(Class<T> entityClass, long timestamp) {
@@ -98,8 +102,7 @@ public class SensorDataService {
         long endTime = timestamp + TIMESTAMP_TOLERANCE_MS;
 
         Query query = new Query(
-                Criteria.where("timestamp").gte(startTime).lte(endTime)
-        );
+                Criteria.where("timestamp").gte(startTime).lte(endTime));
 
         return mongoTemplate.findOne(query, entityClass);
     }

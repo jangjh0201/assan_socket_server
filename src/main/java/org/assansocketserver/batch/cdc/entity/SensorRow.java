@@ -3,9 +3,13 @@ package org.assansocketserver.batch.cdc.entity;
 import org.assansocketserver.domain.sensor.entity.*;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Getter
 @Builder
 public class SensorRow {

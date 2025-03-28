@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SleepService {
 
-    private static final String SLEEP_PREDICT_URL = "http://localhost:5001/sleep_predict";
+    private static final String SLEEP_PREDICT_URL = "http://localhost:6010/sleep_predict";
 
     private final SensorAccelerometerRepository sensorAccelerometerRepository;
     private final RestClient restClient = RestClient.create();

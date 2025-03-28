@@ -75,6 +75,7 @@ public class BatchConfig extends DefaultBatchConfiguration {
     @Bean
     public ListItemReader<SensorData> sensorDataReader(SensorDataRepository sensorDataRepository) {
         List<SensorData> sensorData = sensorDataRepository.findAll();
+        System.out.println("sensorDataReader loaded " + sensorData.size() + " items.");
         return new ListItemReader<>(sensorData);
     }
 
