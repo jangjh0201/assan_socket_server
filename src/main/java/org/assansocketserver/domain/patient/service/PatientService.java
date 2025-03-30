@@ -57,7 +57,7 @@ public class PatientService {
                 List<PatientDTO> patientList = patientsPage.getContent().stream()
                                 .map(patient -> {
                                         Long watchId = patient.getWatch().getId();
-                                        Integer status = watchService.getWatchStatus(watchId);
+                                        Integer watchStatus = watchService.getWatchStatus(watchId);
 
                                         return PatientDTO.builder()
                                                         .id(patient.getId())
@@ -67,8 +67,8 @@ public class PatientService {
                                                         .sectorId(patient.getSector().getId())
                                                         .sectorName(patient.getSector().getName())
                                                         .watchId(watchId)
-                                                        .watchStatus(status)
-                                                        .watchBattery(100)
+                                                        .watchStatus(watchStatus)
+                                                        .watchBattery(watchStatus == 2 ? 100 : 0)
                                                         .watchCharging(false)
                                                         .build();
                                 })
@@ -105,7 +105,7 @@ public class PatientService {
                 return patients.stream()
                                 .map(patient -> {
                                         Long watchId = patient.getWatch().getId();
-                                        Integer status = watchService.getWatchStatus(watchId);
+                                        Integer watchStatus = watchService.getWatchStatus(watchId);
 
                                         return PatientDTO.builder()
                                                         .id(patient.getId())
@@ -113,12 +113,9 @@ public class PatientService {
                                                         .name(patient.getName())
                                                         .sectorId(patient.getSector().getId())
                                                         .sectorName(patient.getSector().getName())
-                                                        /**
-                                                         * watchStatus, watchBattery, watchCharging은 임의로 설정
-                                                         */
-                                                        .watchStatus(status)
-                                                        .watchBattery(100)
-                                                        .watchCharging(true)
+                                                        .watchStatus(watchStatus)
+                                                        .watchBattery(watchStatus == 2 ? 100 : 0)
+                                                        .watchCharging(false)
                                                         .build();
                                 })
                                 .collect(Collectors.toList());

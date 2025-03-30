@@ -2,7 +2,7 @@ package org.assansocketserver.socket.message;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.web.socket.TextMessage;
 import org.assansocketserver.domain.patient.service.PatientSocketService;
 import org.assansocketserver.global.common.WebSocketMessage;
 import org.springframework.stereotype.Component;
@@ -100,8 +100,8 @@ public class PatientMessageHandler implements MessageHandler {
     private void sendMessage(WebSocketSession session, WebSocketMessage<?> message) {
         try {
             if (session.isOpen()) {
-                String jsonMessage = objectMapper.writeValueAsString(message);
-                session.sendMessage(new org.springframework.web.socket.TextMessage(jsonMessage));
+                TextMessage textMessage = new TextMessage(objectMapper.writeValueAsString(message));
+                session.sendMessage(textMessage);
             }
         } catch (Exception e) {
             log.error("메시지 전송 실패", e);

@@ -50,7 +50,7 @@ public class PatientSocketService {
                     .sectorName(patient.getSector().getName())
                     .currentLocationId(locationId)
                     .watchStatus(status)
-                    .watchBattery(100)
+                    .watchBattery(status == 2 ? 100 : 0)
                     .watchCharging(false)
                     .riskGroup(patient.isRiskGroup())
                     .activeStatus(getActiveStatus(patient.getId(), isRisk))
