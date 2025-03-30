@@ -83,7 +83,7 @@ public class NotificationMessageHandler implements MessageHandler {
         WebSocketMessage<NotificationDTO> newNotification = WebSocketMessage.of(
                 "NOTIFICATION_NEW", notificationService.addNewNotification(notificationDTO, ward));
 
-        sendMessage(session, patientSocketService.getPatientList(true));
+        sendMessage(session, patientSocketService.getPatientList(ward, true));
         sendMessage(session, newNotification);
         sendAllNotifications(session, ward);
     }

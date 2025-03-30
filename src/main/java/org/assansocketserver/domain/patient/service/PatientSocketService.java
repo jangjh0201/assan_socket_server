@@ -10,6 +10,7 @@ import org.assansocketserver.domain.patient.entity.Patient;
 import org.assansocketserver.domain.patient.repository.PatientRepository;
 import org.assansocketserver.domain.sector.repository.SectorRepository;
 import org.assansocketserver.domain.sleep.service.SleepService;
+import org.assansocketserver.domain.ward.entity.Ward;
 import org.assansocketserver.domain.watch.dto.WatchInfoDTO;
 import org.assansocketserver.domain.watch.service.WatchService;
 import org.assansocketserver.global.common.WebSocketMessage;
@@ -28,11 +29,10 @@ public class PatientSocketService {
     private final SleepService sleepService;
 
     @Transactional(readOnly = true)
-    public WebSocketMessage<List<PatientSocketDTO>> getPatientList(Boolean isRisk) {
-        List<Patient> patients = patientRepository.findAll();
+    public WebSocketMessage<List<PatientSocketDTO>> getPatientList(Ward ward, Boolean isRisk) {
+        List<Patient> patients = patientRepository.findAllByWard(ward);
 
         List<PatientSocketDTO> patientList = patients.stream().map(patient -> {
-            Long wardId = patient.getWard().getId();
             Long locationId = null;
 
             Long watchId = patient.getWatch() != null ? patient.getWatch().getId() : null;
@@ -40,7 +40,7 @@ public class PatientSocketService {
 
             if (patient.getWatch() != null) {
                 String currentLocation = patient.getWatch().getCurrentLocation();
-                locationId = getCurrentLocationId(wardId, currentLocation);
+                locationId = getCurrentLocationId(ward.getId(), currentLocation);
             }
 
             return PatientSocketDTO.builder()

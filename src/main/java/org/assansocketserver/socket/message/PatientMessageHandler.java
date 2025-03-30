@@ -4,14 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.TextMessage;
 import org.assansocketserver.domain.patient.service.PatientSocketService;
+import org.assansocketserver.domain.ward.entity.Ward;
+import org.assansocketserver.domain.ward.repository.WardRepository;
 import org.assansocketserver.global.common.WebSocketMessage;
+import org.assansocketserver.socket.utils.SessionWardMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PreDestroy;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -22,14 +27,17 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class PatientMessageHandler implements MessageHandler {
 
+    private final WardRepository wardRepository;
+
     private final ObjectMapper objectMapper;
     private final PatientSocketService patientSocketService;
+    private final SessionWardMapper sessionWardMapper;
 
     // 단일 클라이언트 구독 태스크
     private ScheduledFuture<?> subscription;
 
     // 주기적으로 태스크를 실행할 스케줄러 (필요에 따라 스레드 풀 사이즈 조정 가능)
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
     @PreDestroy
     public void shutdownScheduler() {
@@ -42,13 +50,28 @@ public class PatientMessageHandler implements MessageHandler {
         try {
             log.info("cmd: {}", cmd);
             log.info("data: {}", data);
+            Map<String, String> fields = objectMapper.readValue(data, new TypeReference<Map<String, String>>() {
+            });
+            // data에 포함된 token으로 세션과 ward 매핑 시도
+            boolean mapped = sessionWardMapper.mapSessionWithWard(session, fields.get("token"));
+            if (!mapped) {
+                sendErrorMessage(session, "토큰 매핑 실패");
+                return;
+            }
+
 
             switch (cmd) {
                 case "SUBSCRIBE":
-                    subscribe(session, data);
+                    subscribe(session, sessionWardMapper.getWardBySession(session));
                     break;
                 case "UNSUBSCRIBE":
-                    unsubscribe(session, data);
+                    unsubscribe(session);
+                    break;
+                case "WARD_SUBSCRIBE":
+                    subscribe(session, wardRepository.findById(Long.valueOf(fields.get("ward_id"))).orElse(null));
+                    break;
+                case "WARD_UNSUBSCRIBE":
+                    unsubscribe(session);
                     break;
                 default:
                     log.warn("알 수 없는 Patients cmd: {}", cmd);
@@ -63,16 +86,16 @@ public class PatientMessageHandler implements MessageHandler {
      * 환자 정보 구독 (클라이언트 요청)
      * 클라이언트에게 1000ms 주기로 환자 정보 목록 전송
      */
-    private void subscribe(WebSocketSession session, String data) {
+    private void subscribe(WebSocketSession session, Ward ward) {
 
         // 기존 구독이 존재하면 해제 후 새로 등록
         if (subscription != null && !subscription.isCancelled()) {
-            unsubscribe(session, data);
+            unsubscribe(session);
         }
 
         subscription = scheduler.scheduleAtFixedRate(() -> {
             try {
-                sendMessage(session, patientSocketService.getPatientList(false));
+                sendMessage(session, patientSocketService.getPatientList(ward, false));
             } catch (Exception e) {
                 log.error("환자 정보 전송 중 에러 발생", e);
             }
@@ -84,7 +107,7 @@ public class PatientMessageHandler implements MessageHandler {
     /**
      * 환자 정보 구독 해제 (클라이언트 요청)
      */
-    private void unsubscribe(WebSocketSession session, String data) {
+    private void unsubscribe(WebSocketSession session) {
         if (subscription != null) {
             subscription.cancel(false);
             subscription = null;
