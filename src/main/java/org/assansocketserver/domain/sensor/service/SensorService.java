@@ -125,6 +125,20 @@ public class SensorService {
                 .orElse(null);
 
         if (risk != null) {
+            String message;
+            if ("워치 탈착".equals(risk.getRiskType().getName())) {
+                // 워치 탈착일 경우 patient 정보 없이 메시지 작성
+                message = String.format("%s(%s)님 워치 탈착 발생",
+                        patient.getName(),
+                        patient.getSector().getName());
+            } else {
+                // 그 외의 경우 기존 메시지 포맷 사용
+                message = String.format("%s(%s)님 %s(%s) 발생",
+                        patient.getName(),
+                        patient.getSector().getName(),
+                        risk.getRiskType().getName(),
+                        heartRate.getValue());
+            }
             NotificationDTO notificationDTO = NotificationDTO.builder()
                     .category("risk")
                     .data(Map.of(
@@ -135,9 +149,7 @@ public class SensorService {
                             "patient_name", patient.getName(),
                             "sector_id", patient.getSector().getId(),
                             "sector_name", patient.getSector().getName(),
-                            "message",
-                            String.format("%s(%s)님 %s(%s) 발생", patient.getName(), patient.getSector().getName(),
-                                    risk.getRiskType().getName(), heartRate.getValue()),
+                            "message", message,
                             "timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                     .build();
             notificationMessageHandler.sendNewNotification(notificationDTO);
