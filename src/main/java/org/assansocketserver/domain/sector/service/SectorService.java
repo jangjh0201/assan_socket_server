@@ -32,6 +32,24 @@ public class SectorService {
     }
 
     /**
+     * Sector 데이터 생성 (SectorType 생성)
+     * 
+     * @param request { name: string, sectorType: SectorType }[]
+     */
+    public void createSector(Ward ward, SectorDTO request) {
+        Sector sector = Sector.builder()
+                .name(request.getName())
+                .startX(request.getStartX())
+                .startY(request.getStartY())
+                .endX(request.getEndX())
+                .endY(request.getEndY())
+                .sectorType(SectorType.fromName(request.getSectorType().getName()))
+                .ward(ward)
+                .build();
+        sectorRepository.save(sector);
+    }
+
+    /**
      * Sector 데이터 수정 (SectorType 수정)
      * 
      * @param request { id: number, sectorType: SectorType }[]
