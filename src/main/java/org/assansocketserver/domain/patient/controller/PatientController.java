@@ -51,6 +51,15 @@ public class PatientController {
                                 .body(RestResponse.CREATED());
         }
 
+        @DeleteMapping("")
+        public ResponseEntity<RestResponse<Void>> deletePatient(@RequestParam(value = "id") Long id) {
+                patientService.deletePatient(id);
+
+                return ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(RestResponse.OK());
+        }
+
         // 환자 목록 약식 조회(id, name)
         @GetMapping("/list")
         public ResponseEntity<RestResponse<Map<String, Object>>> getPatientsList(

@@ -121,6 +121,11 @@ public class PatientService {
                                 .collect(Collectors.toList());
         }
 
+        public void deletePatient(Long id) {
+                Patient patient = patientRepository.findById(id).orElseThrow();
+                patientRepository.delete(patient);
+        }
+
         public PatientResponse getPatient(Ward ward, Long id) {
                 return patientFacade.readPatient(ward, id);
         }
