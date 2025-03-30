@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.assansocketserver.domain.notification.dto.NotificationDTO;
 import org.assansocketserver.domain.notification.entity.Notification;
 import org.assansocketserver.domain.notification.repository.NotificationRepository;
+import org.assansocketserver.domain.ward.entity.Ward;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,17 +26,26 @@ public class NotificationService {
     /**
      * 읽지 않은 모든 알림 조회 (Entity → DTO 변환 후 반환)
      */
-    public List<NotificationDTO> getAllUnreadNotifications() {
+    public List<NotificationDTO> getAllUnreadNotifications(Ward ward) {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         return notificationRepository.findAll().stream()
-                .filter(notification -> !notification.isRead()) // 읽지 않은 알림만 필터링
+                .filter(notification -> !notification.isRead() && notification.getWardId().equals(ward.getId()))
                 .map(this::convertToDTO)
                 .sorted(Comparator.comparing((NotificationDTO dto) -> {
                     Map<String, Object> data = dto.getData();
                     String timestampStr = (String) data.get("timestamp");
                     return LocalDateTime.parse(timestampStr, formatter);
-                }).reversed()) // 내림차순 정렬: 최신 알림이 위로 오도록
+                }).reversed())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 새로운 알림 추가
+     */
+    public NotificationDTO addNewNotification(NotificationDTO notificationDTO, Ward ward) {
+        Notification notification = convertToEntity(notificationDTO, ward);
+        Notification savedNotification = notificationRepository.save(notification);
+        return convertToDTO(savedNotification);
     }
 
     /**
@@ -47,15 +57,6 @@ public class NotificationService {
             notificationRepository.save(notification);
             return true;
         }).orElse(false);
-    }
-
-    /**
-     * 새로운 알림 추가
-     */
-    public NotificationDTO addNewNotification(NotificationDTO notificationDTO) {
-        Notification notification = convertToEntity(notificationDTO);
-        Notification savedNotification = notificationRepository.save(notification);
-        return convertToDTO(savedNotification);
     }
 
     /**
@@ -73,12 +74,13 @@ public class NotificationService {
     /**
      * DTO → Entity 변환 메서드
      */
-    private Notification convertToEntity(NotificationDTO dto) {
+    private Notification convertToEntity(NotificationDTO dto, Ward ward) {
         return Notification.builder()
                 .id(dto.getId())
                 .category(dto.getCategory())
                 .data(dto.getData())
                 .isRead(dto.isRead())
+                .wardId(ward.getId())
                 .build();
     }
 }

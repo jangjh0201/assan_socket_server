@@ -115,6 +115,6 @@ public class PostService {
                                                 LocalDateTime.now()
                                                                 .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                                 .build();
-                notificationMessageHandler.sendNewNotification(notificationDTO);
+                notificationMessageHandler.broadcastNewNotification(notificationDTO);
         }
 }

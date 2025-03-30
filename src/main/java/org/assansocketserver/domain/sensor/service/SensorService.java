@@ -152,7 +152,9 @@ public class SensorService {
                             "message", message,
                             "timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                     .build();
-            notificationMessageHandler.sendNewNotification(notificationDTO);
+            
+
+            notificationMessageHandler.sendNewNotification(notificationDTO, patient.getWard());
         }
 
         Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);

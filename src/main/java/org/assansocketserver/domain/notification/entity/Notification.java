@@ -25,6 +25,8 @@ public class Notification {
     @Builder.Default
     private boolean isRead = false;
 
+    private Long wardId;
+
     public void markAsRead() {
         this.isRead = true;
     }
