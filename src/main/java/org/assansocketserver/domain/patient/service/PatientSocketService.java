@@ -53,7 +53,7 @@ public class PatientSocketService {
                     .watchBattery(status == 2 ? 100 : 0)
                     .watchCharging(false)
                     .riskGroup(patient.isRiskGroup())
-                    .activeStatus(getActiveStatus(patient.getId(), isRisk))
+                    .activeStatus(status == 2 ? getActiveStatus(patient.getId(), isRisk) : null)
                     .build();
         }).collect(Collectors.toList());
 
@@ -67,6 +67,7 @@ public class PatientSocketService {
     }
 
     private Integer getActiveStatus(Long patientId, boolean isRisk) {
+        // 0 : 활동, 1 : 수면, 2 : 위험
         // 1. 위급 환자
         if (isRisk) {
             return 2;
@@ -74,7 +75,7 @@ public class PatientSocketService {
 
         // 2. 현재 시간 (0~23 기준)
         int hour = LocalTime.now().getHour();
-        boolean isNightTime = (hour >= 22 || hour < 6);
+        boolean isNightTime = (hour >= 17 || hour < 18);
 
         if (isNightTime) {
             // 3. 예측 결과 조회
