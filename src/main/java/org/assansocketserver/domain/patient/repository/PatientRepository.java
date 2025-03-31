@@ -20,4 +20,6 @@ public interface PatientRepository extends JpaRepository<Patient, Long>, JpaSpec
 
     List<Patient> findAllByWardAndNameContaining(Ward ward, String name);
 
+    Boolean existsByNumber(String name);
+
 }

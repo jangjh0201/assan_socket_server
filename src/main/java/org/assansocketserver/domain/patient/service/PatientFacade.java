@@ -84,6 +84,11 @@ public class PatientFacade {
 
         @Transactional
         public void createPatient(Ward ward, PatientRequest request) {
+                // 환자 번호 중복 체크
+                if (patientRepository.existsByNumber(request.getNumber())) {
+                        throw new IllegalArgumentException("이미 존재하는 환자 번호입니다. : " + request.getNumber());
+                }
+
                 // Patient 엔티티 생성
                 Patient patient = Patient.builder()
                                 .name(request.getName())
@@ -142,6 +147,10 @@ public class PatientFacade {
                 Patient patient = patientRepository.findById(id)
                                 .filter(p -> p.getWard().equals(ward))
                                 .orElseThrow(() -> new NoSuchElementException("해당 환자를 찾을 수 없습니다. id: " + id));
+                // 환자 번호 중복 체크
+                if (patientRepository.existsByNumber(request.getNumber())) {
+                        throw new IllegalArgumentException("이미 존재하는 환자 번호입니다. : " + request.getNumber());
+                }
 
                 // 기존 연관관계 제거
                 patient.removeNoContacts();
