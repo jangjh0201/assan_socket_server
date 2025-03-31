@@ -153,7 +153,7 @@ public class SensorService {
                             "timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                     .build();
             
-
+            // log.info("SensorService - Ward Id: {}", patient.getWard().getId());
             notificationMessageHandler.sendNewNotification(notificationDTO, patient.getWard());
         }
 

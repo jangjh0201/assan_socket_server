@@ -83,6 +83,9 @@ public class NotificationMessageHandler implements MessageHandler {
         WebSocketMessage<NotificationDTO> newNotification = WebSocketMessage.of(
                 "NOTIFICATION_NEW", notificationService.addNewNotification(notificationDTO, ward));
 
+        // log.info("NotificationMessageHandler - Ward Id: {}",
+        // sessionWardMapper.getWardBySession(session).getId());
+
         sendMessage(session, patientSocketService.getPatientList(ward, true));
         sendMessage(session, newNotification);
         sendAllNotifications(session, ward);

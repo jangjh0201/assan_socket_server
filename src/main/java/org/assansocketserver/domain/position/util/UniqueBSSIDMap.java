@@ -39,7 +39,7 @@ public class UniqueBSSIDMap {
 
     public synchronized void resetUpdatedBSSIDMapValues() {
         for (String bssid : updatedKeys) {
-            System.out.println("Resetting updated bssid: " + bssid);
+            // System.out.println("Resetting updated bssid: " + bssid);
             bssidMap.put(bssid, null);
         }
         updatedKeys.clear();
@@ -47,7 +47,7 @@ public class UniqueBSSIDMap {
 
     public synchronized void resetBSSIDMapValues() {
         for (String bssid : bssidMap.keySet()) {
-            System.out.println("Resetting bssid: " + bssid);
+            // System.out.println("Resetting bssid: " + bssid);
             bssidMap.put(bssid, null);
         }
         updatedKeys.clear();
