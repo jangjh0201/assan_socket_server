@@ -16,7 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PreDestroy;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -28,20 +30,19 @@ import java.util.concurrent.TimeUnit;
 public class PatientMessageHandler implements MessageHandler {
 
     private final WardRepository wardRepository;
-
     private final ObjectMapper objectMapper;
     private final PatientSocketService patientSocketService;
     private final SessionWardMapper sessionWardMapper;
 
-    // 단일 클라이언트 구독 태스크
-    private ScheduledFuture<?> subscription;
+    // ward별 구독 태스크를 관리하기 위한 맵 (key: Ward ID)
+    private final ConcurrentHashMap<Long, ScheduledFuture<?>> subscriptions = new ConcurrentHashMap<>();
 
     // 주기적으로 태스크를 실행할 스케줄러 (필요에 따라 스레드 풀 사이즈 조정 가능)
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
     @PreDestroy
     public void shutdownScheduler() {
-        System.out.println("PatientMessageHandler scheduler shutdown");
+        log.info("PatientMessageHandler scheduler shutdown");
         scheduler.shutdownNow();
     }
 
@@ -52,26 +53,27 @@ public class PatientMessageHandler implements MessageHandler {
             log.info("data: {}", data);
             Map<String, String> fields = objectMapper.readValue(data, new TypeReference<Map<String, String>>() {
             });
-            // data에 포함된 token으로 세션과 ward 매핑 시도
+            // 메시지에 포함된 token을 이용해 session과 ward 매핑 시도
             boolean mapped = sessionWardMapper.mapSessionWithWard(session, fields.get("token"));
             if (!mapped) {
                 sendErrorMessage(session, "토큰 매핑 실패");
                 return;
             }
 
-
             switch (cmd) {
                 case "SUBSCRIBE":
-                    subscribe(session, sessionWardMapper.getWardBySession(session));
+                    // session에 매핑된 ward 기준 구독 시작
+                    subscribe(sessionWardMapper.getWardBySession(session));
                     break;
                 case "UNSUBSCRIBE":
-                    unsubscribe(session);
+                    unsubscribe(sessionWardMapper.getWardBySession(session));
                     break;
-                case "WARD_SUBSCRIBE":
-                    subscribe(session, wardRepository.findById(Long.valueOf(fields.get("ward_id"))).orElse(null));
+                case "_WARD_SUBSCRIBE":
+                    // 클라이언트에서 명시적으로 ward_id를 전달하는 경우
+                    subscribe(wardRepository.findById(Long.valueOf(fields.get("ward_id"))).orElse(null));
                     break;
-                case "WARD_UNSUBSCRIBE":
-                    unsubscribe(session);
+                case "_WARD_UNSUBSCRIBE":
+                    unsubscribe(wardRepository.findById(Long.valueOf(fields.get("ward_id"))).orElse(null));
                     break;
                 default:
                     log.warn("알 수 없는 Patients cmd: {}", cmd);
@@ -83,37 +85,44 @@ public class PatientMessageHandler implements MessageHandler {
     }
 
     /**
-     * 환자 정보 구독 (클라이언트 요청)
-     * 클라이언트에게 1000ms 주기로 환자 정보 목록 전송
+     * 환자 정보 구독 (ward 단위)
+     * 주기적으로 해당 ward에 매핑된 모든 세션에 환자 정보 목록 전송
      */
-    private void subscribe(WebSocketSession session, Ward ward) {
-
-        // 기존 구독이 존재하면 해제 후 새로 등록
-        if (subscription != null && !subscription.isCancelled()) {
-            unsubscribe(session);
+    private void subscribe(Ward ward) {
+        if (ward == null) {
+            log.error("구독할 ward가 null입니다.");
+            return;
         }
-
-        subscription = scheduler.scheduleAtFixedRate(() -> {
-            try {
-                sendMessage(session, patientSocketService.getPatientList(ward, false));
-            } catch (Exception e) {
-                log.error("환자 정보 전송 중 에러 발생", e);
-            }
-        }, 0, 10000, TimeUnit.MILLISECONDS);
-
-        log.info("환자 정보 구독 시작");
+        // 이미 해당 ward에 대해 구독 작업이 실행 중이면 재실행하지 않음
+        subscriptions.computeIfAbsent(ward.getId(), id -> {
+            log.info("ward {}에 대한 환자 정보 구독 시작", id);
+            return scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    Collection<WebSocketSession> sessions = sessionWardMapper.getSessionsByWard(ward);
+                    sessions.forEach(session -> {
+                        sendMessage(session, patientSocketService.getPatientList(ward, false));
+                    });
+                } catch (Exception e) {
+                    log.error("환자 정보 전송 중 에러 발생", e);
+                }
+            }, 0, 10000, TimeUnit.MILLISECONDS);
+        });
     }
 
     /**
-     * 환자 정보 구독 해제 (클라이언트 요청)
+     * 환자 정보 구독 해제 (ward 단위)
      */
-    private void unsubscribe(WebSocketSession session) {
-        if (subscription != null) {
-            subscription.cancel(false);
-            subscription = null;
-            log.info("환자 정보 구독 해제");
+    private void unsubscribe(Ward ward) {
+        if (ward == null) {
+            log.error("해지할 ward가 null입니다.");
+            return;
+        }
+        ScheduledFuture<?> future = subscriptions.remove(ward.getId());
+        if (future != null) {
+            future.cancel(false);
+            log.info("ward {}에 대한 환자 정보 구독 해제", ward.getId());
         } else {
-            log.warn("구독된 태스크가 존재하지 않음");
+            log.warn("ward {}에 대해 구독된 태스크가 존재하지 않음", ward.getId());
         }
     }
 
@@ -138,5 +147,4 @@ public class PatientMessageHandler implements MessageHandler {
         WebSocketMessage<String> errorResponse = WebSocketMessage.of("ERROR", errorMessage);
         sendMessage(session, errorResponse);
     }
-
 }

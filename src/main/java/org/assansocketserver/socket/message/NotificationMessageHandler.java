@@ -14,9 +14,11 @@ import org.assansocketserver.socket.utils.SessionWardMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,13 +30,11 @@ public class NotificationMessageHandler implements MessageHandler {
     private final ObjectMapper objectMapper;
     private final SessionWardMapper sessionWardMapper;
 
-    private static final ConcurrentHashMap<String, WebSocketSession> CLIENT_SESSIONS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, SessionSender> SESSION_SENDERS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Boolean> SESSION_INITIALIZED = new ConcurrentHashMap<>();
 
     @Override
     public void handleMessage(WebSocketSession session, String cmd, String data) {
-        CLIENT_SESSIONS.putIfAbsent(session.getId(), session);
         SESSION_SENDERS.putIfAbsent(session.getId(), new SessionSender(session, objectMapper));
 
         try {
@@ -42,7 +42,8 @@ public class NotificationMessageHandler implements MessageHandler {
             log.info("data: {}", data);
             Map<String, String> fields = objectMapper.readValue(data, new TypeReference<Map<String, String>>() {
             });
-            // data에 포함된 token으로 세션과 ward 매핑 시도
+
+            // 메시지에서 받은 토큰을 이용하여 sessionWardMapper에 ward 매핑
             boolean mapped = sessionWardMapper.mapSessionWithWard(session, fields.get("token"));
             if (!mapped) {
                 sendErrorMessage(session, "토큰 매핑 실패");
@@ -69,44 +70,58 @@ public class NotificationMessageHandler implements MessageHandler {
     }
 
     public void sendNewNotification(NotificationDTO notificationDTO, Ward ward) {
-        WebSocketSession session = sessionWardMapper.getSessionByWard(ward);
-        if (session == null) {
-            log.info("세션이 존재하지 않습니다. 알림 전송 생략");
+        // 알림 저장을 한 번만 수행 (저장된 알림 데이터를 재사용)
+        NotificationDTO savedNotification = notificationService.addNewNotification(notificationDTO, ward);
+        WebSocketMessage<NotificationDTO> newNotification = WebSocketMessage.of("NOTIFICATION_NEW", savedNotification);
+
+        // 해당 ward에 매핑된 모든 세션 가져오기
+        Collection<WebSocketSession> sessions = sessionWardMapper.getSessionsByWard(ward);
+        if (sessions.isEmpty()) {
+            log.info("해당 ward에 매핑된 세션이 없습니다. 알림 전송 생략");
             return;
         }
-        String sessionId = session.getId();
-        if (!Boolean.TRUE.equals(SESSION_INITIALIZED.get(sessionId))) {
-            log.info("세션 {} 은 아직 초기화되지 않았습니다. 알림 전송 생략", sessionId);
-            return;
+
+        for (WebSocketSession session : sessions) {
+            String sessionId = session.getId();
+            if (!Boolean.TRUE.equals(SESSION_INITIALIZED.get(sessionId))) {
+                log.info("세션 {} 은 아직 초기화되지 않았습니다. 알림 전송 생략", sessionId);
+                continue;
+            }
+            // 환자 리스트 전송
+            sendMessage(session, patientSocketService.getPatientList(ward, true));
+            // 신규 알림 전송
+            sendMessage(session, newNotification);
+            // 전체 알림 목록 갱신 전송
+            sendAllNotifications(session, ward);
         }
-
-        WebSocketMessage<NotificationDTO> newNotification = WebSocketMessage.of(
-                "NOTIFICATION_NEW", notificationService.addNewNotification(notificationDTO, ward));
-
-        // log.info("NotificationMessageHandler - Ward Id: {}",
-        // sessionWardMapper.getWardBySession(session).getId());
-
-        sendMessage(session, patientSocketService.getPatientList(ward, true));
-        sendMessage(session, newNotification);
-        sendAllNotifications(session, ward);
     }
 
     public void broadcastNewNotification(NotificationDTO notificationDTO) {
-        CLIENT_SESSIONS.forEach((id, session) -> {
-            Ward ward = sessionWardMapper.getWardBySession(session);
+        // 전체 세션을 ward 기준으로 그룹화
+        Map<Ward, List<WebSocketSession>> wardSessionsMap = sessionWardMapper.getAllSessions().stream()
+                .collect(Collectors.groupingBy(session -> sessionWardMapper.getWardBySession(session)));
+
+        // 각 ward 그룹에 대해 처리
+        wardSessionsMap.forEach((ward, sessions) -> {
+            // ward가 null인 경우는 무시
             if (ward == null) {
                 return;
             }
-            // 세션 초기화 상태 확인
-            if (!Boolean.TRUE.equals(SESSION_INITIALIZED.get(id))) {
-                log.info("세션 {} 은 아직 초기화되지 않았습니다. 알림 전송 생략", id);
-                return;
-            }
-            // 각 ward에 맞게 새로운 알림 추가 후 전송
-            WebSocketMessage<NotificationDTO> newNotification = WebSocketMessage.of(
-                    "NOTIFICATION_NEW", notificationService.addNewNotification(notificationDTO, ward));
-            sendMessage(session, newNotification);
-            sendAllNotifications(session, ward);
+            // 한 번만 저장
+            NotificationDTO savedNotification = notificationService.addNewNotification(notificationDTO, ward);
+            WebSocketMessage<NotificationDTO> newNotification = WebSocketMessage.of("NOTIFICATION_NEW",
+                    savedNotification);
+
+            // 해당 ward에 속한 모든 세션에 메시지 전송
+            sessions.forEach(session -> {
+                String sessionId = session.getId();
+                if (!Boolean.TRUE.equals(SESSION_INITIALIZED.get(sessionId))) {
+                    log.info("세션 {} 은 아직 초기화되지 않았습니다. 알림 전송 생략", sessionId);
+                    return;
+                }
+                sendMessage(session, newNotification);
+                sendAllNotifications(session, ward);
+            });
         });
     }
 
