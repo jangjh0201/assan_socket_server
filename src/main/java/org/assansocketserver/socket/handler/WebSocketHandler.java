@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.assansocketserver.auth.jwt.WebSocketFilter;
 import org.assansocketserver.domain.ward.entity.Ward;
 import org.assansocketserver.socket.dispatcher.MessageDispatcher;
+import org.assansocketserver.socket.utils.SessionWardMapper;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -25,6 +26,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper;
     private final MessageDispatcher messageDispatcher;
     private final WebSocketFilter webSocketFilter;
+    private final SessionWardMapper sessionWardMapper;
 
     // WebSocket 세션 저장 (1:1 통신)
     private static final ConcurrentHashMap<String, WebSocketSession> CLIENT_SESSIONS = new ConcurrentHashMap<>();
@@ -39,6 +41,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         CLIENT_SESSIONS.remove(session.getId());
         log.info("WebSocket 세션 종료: {}", session.getId());
+        sessionWardMapper.removeMapping(session);
     }
 
     @Override
