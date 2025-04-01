@@ -84,13 +84,13 @@ public class PatientSocketService {
         }
         // 위급 상태가 아닐 경우 기존 수면 예측 로직 수행
         int hour = LocalTime.now().getHour();
-        boolean isNightTime = (hour >= 17 || hour < 18);
+        boolean isNightTime = (hour >= 16 || hour < 18);
         if (isNightTime) {
             List<Map<String, Object>> predictions = sleepService.getSleepPredictions();
             boolean isActive = predictions.stream()
                     .anyMatch(p -> watchId.equals(Long.valueOf(p.get("watch_id").toString()))
                             && Integer.valueOf(p.get("prediction").toString()) == 1);
-            return isActive ? 1 : 0;
+            return isActive ? 0 : 1;
         }
         return 0;
     }
