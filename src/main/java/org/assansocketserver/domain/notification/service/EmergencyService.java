@@ -110,8 +110,8 @@ public class EmergencyService {
                         String patientName = (String) data.get("patient_name");
                         Patient patient = patientRepository.findById(patientId).orElse(null);
                         String patientNumber = (patient != null) ? patient.getNumber() : null;
-                        String sectorName = (String) data.get("sector_name");
-                        String currentSectorName = (String) data.get("position");
+                        String sectorName = (patient != null) ? patient.getSector().getName() : null;
+                        String currentSectorName = (String) data.get("sector_name");
                         String timestamp = (String) data.get("timestamp");
                         return EmergencyDTO.builder()
                                         .id(emergencyId)
