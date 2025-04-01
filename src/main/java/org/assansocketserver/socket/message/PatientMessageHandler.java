@@ -70,10 +70,10 @@ public class PatientMessageHandler implements MessageHandler {
                     break;
                 case "_WARD_SUBSCRIBE":
                     // 클라이언트에서 명시적으로 ward_id를 전달하는 경우
-                    subscribe(wardRepository.findById(Long.valueOf(fields.get("ward_id"))).orElse(null));
+                    subscribeWard(session, fields.get("ward_id"));
                     break;
                 case "_WARD_UNSUBSCRIBE":
-                    unsubscribe(wardRepository.findById(Long.valueOf(fields.get("ward_id"))).orElse(null));
+                    unsubscribeWard(session, fields.get("ward_id"));
                     break;
                 default:
                     log.warn("알 수 없는 Patients cmd: {}", cmd);
@@ -105,7 +105,7 @@ public class PatientMessageHandler implements MessageHandler {
                 } catch (Exception e) {
                     log.error("환자 정보 전송 중 에러 발생", e);
                 }
-            }, 0, 10000, TimeUnit.MILLISECONDS);
+            }, 0, 15000, TimeUnit.MILLISECONDS);
         });
     }
 
@@ -123,6 +123,51 @@ public class PatientMessageHandler implements MessageHandler {
             log.info("ward {}에 대한 환자 정보 구독 해제", ward.getId());
         } else {
             log.warn("ward {}에 대해 구독된 태스크가 존재하지 않음", ward.getId());
+        }
+    }
+
+    /**
+     * ward 단위 환자 정보 구독
+     * 주기적으로 해당 ward에 매핑된 모든 세션에 환자 정보 전송
+     */
+    private void subscribeWard(WebSocketSession session, String wardId) {
+        if (wardId == null) {
+            log.error("구독할 wardId가 null입니다.");
+            return;
+        }
+        Ward ward = wardRepository.findById(Long.valueOf(wardId)).orElse(null);
+        if (ward == null) {
+            log.error("구독할 wardId {}에 해당하는 ward를 찾을 수 없습니다.", wardId);
+            return;
+        }
+        // 이미 해당 ward에 대해 구독 작업이 실행 중이면 재실행하지 않음
+        subscriptions.computeIfAbsent(ward.getId(), id -> {
+            log.info("ward {}에 대한 환자 정보 구독 시작", id);
+            return scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    sendMessage(session, patientSocketService.getPatientList(ward));
+                } catch (Exception e) {
+                    log.error("환자 정보 전송 중 에러 발생", e);
+                }
+            }, 0, 15000, TimeUnit.MILLISECONDS);
+        });
+
+    }
+
+    /**
+     * 환자 정보 구독 해제 (ward 단위)
+     */
+    private void unsubscribeWard(WebSocketSession session, String wardId) {
+        if (wardId == null) {
+            log.error("해지할 wardId가 null입니다.");
+            return;
+        }
+        ScheduledFuture<?> future = subscriptions.remove(Long.valueOf(wardId));
+        if (future != null) {
+            future.cancel(false);
+            log.info("ward {}에 대한 환자 정보 구독 해제", wardId);
+        } else {
+            log.warn("ward {}에 대해 구독된 태스크가 존재하지 않음", wardId);
         }
     }
 
