@@ -87,8 +87,6 @@ public class NotificationMessageHandler implements MessageHandler {
                 log.info("세션 {} 은 아직 초기화되지 않았습니다. 알림 전송 생략", sessionId);
                 continue;
             }
-            // 환자 리스트 전송
-            sendMessage(session, patientSocketService.getPatientList(ward));
             // 신규 알림 전송
             sendMessage(session, newNotification);
             // 전체 알림 목록 갱신 전송
@@ -127,6 +125,7 @@ public class NotificationMessageHandler implements MessageHandler {
 
     private void sendAllNotifications(WebSocketSession session, Ward ward) {
         List<NotificationDTO> unreadNotifications = notificationService.getAllUnreadNotifications(ward);
+        sendMessage(session, patientSocketService.getPatientList(ward));
         sendMessage(session, WebSocketMessage.of("NOTIFICATION_ALL", unreadNotifications));
         SESSION_INITIALIZED.put(session.getId(), true); // 최초 초기화 완료 표시
     }
