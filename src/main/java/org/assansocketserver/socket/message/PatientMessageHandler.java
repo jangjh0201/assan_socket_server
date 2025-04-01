@@ -8,7 +8,6 @@ import org.assansocketserver.domain.ward.entity.Ward;
 import org.assansocketserver.domain.ward.repository.WardRepository;
 import org.assansocketserver.global.common.WebSocketMessage;
 import org.assansocketserver.socket.utils.SessionWardMapper;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -34,7 +33,6 @@ public class PatientMessageHandler implements MessageHandler {
     private final ObjectMapper objectMapper;
     private final PatientSocketService patientSocketService;
     private final SessionWardMapper sessionWardMapper;
-    private final RedisTemplate<String, Object> redisTemplate; // RedisTemplate 추가
 
     // ward별 구독 태스크를 관리하기 위한 맵 (key: Ward ID)
     private final ConcurrentHashMap<Long, ScheduledFuture<?>> subscriptions = new ConcurrentHashMap<>();
@@ -87,15 +85,6 @@ public class PatientMessageHandler implements MessageHandler {
     }
 
     /**
-     * Redis를 사용하여 위급 상태를 조회하는 헬퍼 메서드.
-     */
-    private boolean isEmergencyActive(Ward ward) {
-        String key = "emergency:" + ward.getId();
-        Object value = redisTemplate.opsForValue().get(key);
-        return Boolean.TRUE.equals(value);
-    }
-
-    /**
      * ward 단위 환자 정보 구독
      * 주기적으로 해당 ward에 매핑된 모든 세션에 환자 정보 전송
      */
@@ -110,10 +99,8 @@ public class PatientMessageHandler implements MessageHandler {
             return scheduler.scheduleAtFixedRate(() -> {
                 try {
                     Collection<WebSocketSession> sessions = sessionWardMapper.getSessionsByWard(ward);
-                    // Redis에서 위급 상태 조회
-                    boolean emergency = isEmergencyActive(ward);
                     sessions.forEach(session -> {
-                        sendMessage(session, patientSocketService.getPatientList(ward, emergency));
+                        sendMessage(session, patientSocketService.getPatientList(ward));
                     });
                 } catch (Exception e) {
                     log.error("환자 정보 전송 중 에러 발생", e);

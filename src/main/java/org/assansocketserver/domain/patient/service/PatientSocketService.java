@@ -14,6 +14,7 @@ import org.assansocketserver.domain.ward.entity.Ward;
 import org.assansocketserver.domain.watch.dto.WatchInfoDTO;
 import org.assansocketserver.domain.watch.service.WatchService;
 import org.assansocketserver.global.common.WebSocketMessage;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +28,10 @@ public class PatientSocketService {
     private final PatientRepository patientRepository;
     private final SectorRepository sectorRepository;
     private final SleepService sleepService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional(readOnly = true)
-    public WebSocketMessage<List<PatientSocketDTO>> getPatientList(Ward ward, Boolean isRisk) {
+    public WebSocketMessage<List<PatientSocketDTO>> getPatientList(Ward ward) {
         List<Patient> patients = patientRepository.findAllByWard(ward);
 
         List<PatientSocketDTO> patientList = patients.stream().map(patient -> {
@@ -53,7 +55,7 @@ public class PatientSocketService {
                     .watchBattery(status == 2 ? 100 : 0)
                     .watchCharging(false)
                     .riskGroup(patient.isRiskGroup())
-                    .activeStatus(status == 2 ? getActiveStatus(patient.getId(), isRisk) : null)
+                    .activeStatus(status == 2 ? getActiveStatus(patient.getId()) : null)
                     .build();
         }).collect(Collectors.toList());
 
@@ -66,38 +68,30 @@ public class PatientSocketService {
                 .orElse(null);
     }
 
-    private Integer getActiveStatus(Long patientId, boolean isRisk) {
+    private Integer getActiveStatus(Long patientId) {
         // 0 : 활동, 1 : 수면, 2 : 위험
-        // 1. 위급 환자
-        if (isRisk) {
-            return 2;
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new IllegalArgumentException("환자 ID " + patientId + "를 찾을 수 없습니다."));
+        if (patient.getWatch() == null) {
+            return 0;
         }
-
-        // 2. 현재 시간 (0~23 기준)
+        Long watchId = patient.getWatch().getId();
+        // Redis 키: emergency:watch:{watchId}
+        String key = "emergency:watch:" + watchId;
+        Object value = redisTemplate.opsForValue().get(key);
+        if (Boolean.TRUE.equals(value)) {
+            return 2; // 위험 상태
+        }
+        // 위급 상태가 아닐 경우 기존 수면 예측 로직 수행
         int hour = LocalTime.now().getHour();
         boolean isNightTime = (hour >= 17 || hour < 18);
-
         if (isNightTime) {
-            // 3. 예측 결과 조회
             List<Map<String, Object>> predictions = sleepService.getSleepPredictions();
-
-            // 4. 해당 환자의 watch_id 확인
-            Patient patient = patientRepository.findById(patientId)
-                    .orElseThrow(() -> new IllegalArgumentException("환자 ID " + patientId + "를 찾을 수 없습니다."));
-
-            if (patient.getWatch() == null) {
-                return 0;
-            }
-            Long watchId = patient.getWatch().getId();
-
-            // 5. prediction 결과에서 해당 watch_id 찾아서 prediction == 1 인지 확인
             boolean isActive = predictions.stream()
                     .anyMatch(p -> watchId.equals(Long.valueOf(p.get("watch_id").toString()))
                             && Integer.valueOf(p.get("prediction").toString()) == 1);
             return isActive ? 1 : 0;
         }
-
-        // 6. 나머지 시간대
         return 0;
     }
 

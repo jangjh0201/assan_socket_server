@@ -88,7 +88,7 @@ public class NotificationMessageHandler implements MessageHandler {
                 continue;
             }
             // 환자 리스트 전송
-            sendMessage(session, patientSocketService.getPatientList(ward, true));
+            sendMessage(session, patientSocketService.getPatientList(ward));
             // 신규 알림 전송
             sendMessage(session, newNotification);
             // 전체 알림 목록 갱신 전송

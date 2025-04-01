@@ -67,14 +67,14 @@ public class SensorService {
         Accelerometer createdAccelerometer = createAccelerometer(accelerometerRequestDto);
         createAccelerometerAndSave(watchId, accelerometerRequestDto);
 
-        String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
+        // String destination = "/queue/sensor/" + simpSessionAttributes.get("watchId");
 
-        Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);
+        // Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);
 
-        if (!Objects.isNull(sensorSendState)) {
-            sendingOperations.convertAndSend(destination, SocketBaseResponse.of(MessageType.ACCELEROMETER,
-                    AccelerometerResponseDto.of(createdAccelerometer)));
-        }
+        // if (!Objects.isNull(sensorSendState)) {
+        //     sendingOperations.convertAndSend(destination, SocketBaseResponse.of(MessageType.ACCELEROMETER,
+        //             AccelerometerResponseDto.of(createdAccelerometer)));
+        // }
     }
 
     public void sendBarometer(Map<String, Object> simpSessionAttributes,
@@ -125,19 +125,16 @@ public class SensorService {
                 .orElse(null);
 
         if (risk != null) {
+            // 위급 상황 발생 시 Redis 업데이트
+            updateEmergencyStatus(watchId, true);
+
             String message;
             if ("워치 탈착".equals(risk.getRiskType().getName())) {
-                // 워치 탈착일 경우 patient 정보 없이 메시지 작성
-                message = String.format("%s(%s)님 워치 탈착 발생",
-                        patient.getName(),
-                        patient.getSector().getName());
+                message = String.format("%s(%s)님 워치 탈착 발생", patient.getName(), patient.getSector().getName());
             } else {
-                // 그 외의 경우 기존 메시지 포맷 사용
                 message = String.format("%s(%s)님 %s(%s) 발생",
-                        patient.getName(),
-                        patient.getSector().getName(),
-                        risk.getRiskType().getName(),
-                        heartRate.getValue());
+                        patient.getName(), patient.getSector().getName(),
+                        risk.getRiskType().getName(), heartRate.getValue());
             }
             NotificationDTO notificationDTO = NotificationDTO.builder()
                     .category("risk")
@@ -152,15 +149,28 @@ public class SensorService {
                             "message", message,
                             "timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                     .build();
-            
-            // log.info("SensorService - Ward Id: {}", patient.getWard().getId());
             notificationMessageHandler.sendNewNotification(notificationDTO, patient.getWard());
+        } else {
+            // 위급 상황이 아니면 정상 상태 업데이트 (false)
+            updateEmergencyStatus(watchId, false);
         }
 
         Object sensorSendState = redisTemplate.opsForValue().get("sensorSendState:" + watchId);
         if (sensorSendState != null) {
             sendingOperations.convertAndSend(destination,
                     SocketBaseResponse.of(MessageType.HEART_RATE, HeartRateResponseDto.of(heartRate)));
+        }
+    }
+
+    private void updateEmergencyStatus(Long watchId, boolean emergency) {
+        String key = "emergency:watch:" + watchId;
+        if (emergency) {
+            // 위급 상황일 경우 true로 업데이트 및 만료시간 설정 (예: 5분)
+            redisTemplate.opsForValue().set(key, true);
+            redisTemplate.expire(key, 5, TimeUnit.MINUTES);
+        } else {
+            // 정상 상태이면 false로 업데이트하거나 키 삭제 가능 (여기서는 false 업데이트)
+            redisTemplate.opsForValue().set(key, false);
         }
     }
 
