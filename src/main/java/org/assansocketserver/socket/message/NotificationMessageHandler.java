@@ -14,6 +14,9 @@ import org.assansocketserver.socket.utils.SessionWardMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -125,9 +128,14 @@ public class NotificationMessageHandler implements MessageHandler {
 
     private void sendAllNotifications(WebSocketSession session, Ward ward) {
         List<NotificationDTO> unreadNotifications = notificationService.getAllUnreadNotifications(ward);
+
+
+        System.out.println("::::::::::::::::::::::::Send 받은 시각 (KST): " + Instant.ofEpochMilli(System.currentTimeMillis()).atZone(ZoneId.of("Asia/Seoul")));
+
         sendMessage(session, patientSocketService.getPatientList(ward));
         sendMessage(session, WebSocketMessage.of("NOTIFICATION_ALL", unreadNotifications));
         SESSION_INITIALIZED.put(session.getId(), true); // 최초 초기화 완료 표시
+        
     }
 
     private void markNotificationAsRead(WebSocketSession session, String notificationId) {

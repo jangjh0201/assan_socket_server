@@ -51,8 +51,8 @@ public class PatientController {
                                 .body(RestResponse.CREATED());
         }
 
-        @DeleteMapping("")
-        public ResponseEntity<RestResponse<Void>> deletePatient(@RequestParam(value = "id") Long id) {
+        @DeleteMapping("/{id}")
+        public ResponseEntity<RestResponse<Void>> deletePatient(@PathVariable("id") Long id) {
                 patientService.deletePatient(id);
 
                 return ResponseEntity
