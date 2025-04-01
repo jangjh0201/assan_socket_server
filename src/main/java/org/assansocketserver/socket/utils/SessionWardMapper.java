@@ -26,8 +26,18 @@ public class SessionWardMapper {
     // WebSocket 세션과 Ward 매핑을 위한 맵
     private final ConcurrentHashMap<String, Ward> sessionWardMap = new ConcurrentHashMap<>();
 
+    // 기본 Ward (관리자용 혹은 초기 기본값)
+    private static final Ward DEFAULT_WARD;
+    static {
+        DEFAULT_WARD = Ward.builder()
+                .id(0L)
+                .name("DEFAULT")
+                .build();
+    }
+
     public void register(WebSocketSession session) {
         sessions.put(session.getId(), session);
+        sessionWardMap.put(session.getId(), DEFAULT_WARD);
     }
 
     public boolean mapSessionWithWard(WebSocketSession session, String token) throws Exception {

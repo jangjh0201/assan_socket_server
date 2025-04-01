@@ -147,8 +147,8 @@ public class PatientFacade {
                 Patient patient = patientRepository.findById(id)
                                 .filter(p -> p.getWard().equals(ward))
                                 .orElseThrow(() -> new NoSuchElementException("해당 환자를 찾을 수 없습니다. id: " + id));
-                // 환자 번호 중복 체크
-                if (patientRepository.existsByNumber(request.getNumber())) {
+                // 환자 번호 중복 체크(자기 번호 제외)
+                if (patientRepository.existsByNumber(request.getNumber()) && !patient.getNumber().equals(request.getNumber())) {
                         throw new IllegalArgumentException("이미 존재하는 환자 번호입니다. : " + request.getNumber());
                 }
 
