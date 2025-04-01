@@ -189,16 +189,15 @@ public class PositionService {
             uniqueBSSIDMap.copyFrom(baseMap);
 
             try {
-                System.out.println(posData.beaconData() + " " + posData.sectorName());
-                // positionState이 null이 아닌 상태는 "비콘 수집" 상태임
+                // log.info(posData.beaconData() + " " + posData.sectorName());
+                // [비콘 수집] positionState != null : 수집중
                 if (!Objects.isNull(positionState)) {
                     System.out.println("positionState");
                     System.out.println("Check adding");
                     addPosData(posData, positionState.getImageId(), positionState.getPosition());
                 } else {
                     for (BeaconDataDTO beaconData : posData.beaconData()) {
-                        System.out.println(
-                                "Updating beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
+                        // log.info("Updating beaconData bssid = " + beaconData.bssid() + ", rssi = " + beaconData.rssi());
                         uniqueBSSIDMap.updateBSSIDMap(beaconData.bssid(), String.valueOf(beaconData.rssi()));
                     }
                 }
