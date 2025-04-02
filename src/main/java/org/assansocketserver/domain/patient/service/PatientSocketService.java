@@ -30,6 +30,8 @@ public class PatientSocketService {
     private final SleepService sleepService;
     private final RedisTemplate<String, Object> redisTemplate;
 
+    // [watch status] 0: 연결 끊김, 1: 네트워크 밖, 2: 연결됨
+    // [active status] 0 : 활동, 1 : 수면, 2 : 위험
     @Transactional(readOnly = true)
     public WebSocketMessage<List<PatientSocketDTO>> getPatientList(Ward ward) {
         List<Patient> patients = patientRepository.findAllByWard(ward);
@@ -51,7 +53,7 @@ public class PatientSocketService {
                     .number(patient.getNumber())
                     .sectorName(patient.getSector().getName())
                     .currentLocationId(locationId)
-                    .watchStatus(status)
+                    .watchStatus(locationId == null ? 1 : status)
                     .watchBattery(status == 2 ? 100 : 0)
                     .watchCharging(false)
                     .riskGroup(patient.isRiskGroup())
