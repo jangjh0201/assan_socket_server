@@ -144,6 +144,7 @@ public class SensorService {
                             "severity", risk.getSeverity(),
                             "patient_id", patient.getId(),
                             "patient_name", patient.getName(),
+                            "patient_number", patient.getNumber(),
                             "sector_id", patient.getSector().getId(),
                             "sector_name", patient.getSector().getName(),
                             "message", message,

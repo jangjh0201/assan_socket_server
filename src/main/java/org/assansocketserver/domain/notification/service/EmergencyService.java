@@ -67,7 +67,8 @@ public class EmergencyService {
                 // keyword가 포함되는지
                 if (keyword != null && !keyword.trim().isEmpty()) {
                         Criteria keywordCriteria = new Criteria().orOperator(
-                                        Criteria.where("data.sector_name").regex(keyword, "i"),
+                                        Criteria.where("data.risk_name").regex(keyword, "i"),
+                                        Criteria.where("data.patient_number").regex(keyword, "i"),
                                         Criteria.where("data.patient_name").regex(keyword, "i"));
                         criteria = new Criteria().andOperator(criteria, keywordCriteria);
                 }
@@ -77,7 +78,7 @@ public class EmergencyService {
                 // 5. 정렬: sort 파라미터에 따라 정렬 필드 결정 (내림차순)
                 String sortField = "data.timestamp"; // 기본은 date
                 if ("name".equalsIgnoreCase(sort)) {
-                        sortField = "data.risk_name";
+                        sortField = "data.patient_name";
                 } else if ("sector".equalsIgnoreCase(sort)) {
                         sortField = "data.sector_name";
                 } else if ("number".equalsIgnoreCase(sort)) {
