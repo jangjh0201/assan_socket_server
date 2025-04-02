@@ -27,12 +27,12 @@ public class SensorDataService {
 
     public SensorData processSensorDataForWatch(SensorData selectedSensorData) {
         LocalDate today = LocalDate.now();
-        System.out.println("today = " + today);
+        // System.out.println("today = " + today);
         List<SensorRow> sensorRowList = new ArrayList<>();
 
         // Acceleration Data 기준으로 SensorRow 생성
         List<SensorAccelerometer> accelerometerDataList = findAllAccelerometerDataForWatch(selectedSensorData, today);
-        System.out.println("accelerometerDataList = " + accelerometerDataList);
+        // System.out.println("accelerometerDataList = " + accelerometerDataList);
         for (SensorAccelerometer accelerometerData : accelerometerDataList) {
             // System.out.println("accelerometerData.getId() = " +
             // accelerometerData.getId());
